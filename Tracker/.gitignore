@@ -1,0 +1,29 @@
+# Xcode
+.DS_Store
+*.xcuserstate
+xcuserdata/
+DerivedData/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspective3
+
+# Swift Package Manager
+.swiftpm/
+Packages/
+
+# CocoaPods
+Pods/
+
+# Carthage
+build/
+
+# Carthage-Cordova
+platforms/
+
+# Системные файлы
+*.swp
+*.bakcup
+*.log
+
+# Xcode 12
