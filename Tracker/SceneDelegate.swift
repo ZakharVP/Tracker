@@ -47,6 +47,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         tabBarController.tabBar.unselectedItemTintColor = .gray
         tabBarController.tabBar.backgroundColor = .systemBackground
         
+        let line = UIView(frame: CGRect(x: 0, y: 0, width: tabBarController.tabBar.frame.width, height: 0.5))
+        line.backgroundColor = .lightGray
+        tabBarController.tabBar.addSubview(line)
+        
         window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
     }

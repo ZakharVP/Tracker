@@ -8,27 +8,20 @@
 import UIKit
 
 class ViewController: UIViewController {
+    
+    private lazy var dateButton = UIButton(type: .system)
 
-    private lazy var dateButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitleColor(.black, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-        button.backgroundColor = .systemGray6
-        button.layer.cornerRadius = 8
-        button.addTarget(self, action: #selector(showDatePicker), for: .touchUpInside)
-        return button
-    }()
+    private let buttonPlus      = UIButton(type: .system)
+    private let titleLabel      = UILabel()
+    private let searchBar       = UISearchBar()
+    private let mainImage       = UIImageView()
+    private let centerLabel     = UILabel()
     
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd.MM.yy"
         return formatter
     }()
-    
-    private let buttonPlus  = UIButton(type: .system)
-    private let titleLabel  = UILabel()
-    private let searchBar   = UISearchBar()
-    private let mainImage   = UIImageView()
     
     lazy var collectionView: UICollectionView = {
            let layout = UICollectionViewFlowLayout()
@@ -59,23 +52,25 @@ class ViewController: UIViewController {
         setupTitleLabel()
         setupSearchBar()
         setupMainImage()
+        setupCenterLabel()
         setupCollectionView()
         
         updateUI()
        
         NSLayoutConstraint.activate([
             buttonPlus.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
-            buttonPlus.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: -16),
+            buttonPlus.topAnchor.constraint(equalTo: view.topAnchor, constant: 49),
             buttonPlus.widthAnchor.constraint(equalToConstant: 42),
             buttonPlus.heightAnchor.constraint(equalToConstant: 42),
             
+            dateButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 49),
             dateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            dateButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: -16),
             dateButton.widthAnchor.constraint(equalToConstant: 77),
             dateButton.heightAnchor.constraint(equalToConstant: 34),
             
             titleLabel.topAnchor.constraint(equalTo: buttonPlus.bottomAnchor, constant: 1),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            titleLabel.widthAnchor.constraint(equalToConstant: 254),
             
             searchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 7),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
@@ -83,7 +78,11 @@ class ViewController: UIViewController {
             searchBar.heightAnchor.constraint(equalToConstant: 36),
             
             mainImage.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            mainImage.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            mainImage.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+            centerLabel.topAnchor.constraint(equalTo: mainImage.bottomAnchor, constant: 8),
+            centerLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            centerLabel.widthAnchor.constraint(equalToConstant: 343)
         
         ])
         
@@ -111,26 +110,24 @@ class ViewController: UIViewController {
     
     private func setupDateButton() {
         dateButton.translatesAutoresizingMaskIntoConstraints = false
-        
         view.addSubview(dateButton)
     }
     
     private func updateDateButton(with date: Date) {
+        dateButton.setTitleColor(.black, for: .normal)
+        dateButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+        dateButton.backgroundColor = .systemGray6
+        dateButton.layer.cornerRadius = 8
+        dateButton.addTarget(self, action: #selector(showDatePicker), for: .touchUpInside)
         let formattedDate = dateFormatter.string(from: date)
         dateButton.setTitle(formattedDate, for: .normal)
     }
     
     private func setupTitleLabel() {
-        titleLabel.textAlignment = .center
+        titleLabel.textAlignment = .left
         titleLabel.text = "Трекеры"
         titleLabel.textColor = .black
-        
-        if let sfProBold = UIFont(name: "SFPro-Bold", size: 34) {
-            titleLabel.font = sfProBold
-        } else {
-            titleLabel.font = UIFont.systemFont(ofSize: 34, weight: .bold)
-        }
-        
+        titleLabel.font = UIFont.systemFont(ofSize: 34, weight: .bold)
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(titleLabel)
     }
@@ -139,7 +136,6 @@ class ViewController: UIViewController {
         searchBar.placeholder = "Поиск"
         searchBar.searchBarStyle = .minimal
         searchBar.translatesAutoresizingMaskIntoConstraints = false
-        searchBar.searchTextField.leftView = nil
         searchBar.searchTextField.rightView = nil
         
         if let textField = searchBar.value(forKey: "searchField") as? UITextField {
@@ -155,6 +151,16 @@ class ViewController: UIViewController {
         mainImage.image = UIImage(named: "star_center")
         mainImage.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(mainImage)
+    }
+    
+    private func setupCenterLabel() {
+        centerLabel.text = "Что будем отслеживать?"
+        centerLabel.textAlignment = .center
+        centerLabel.textColor = .black
+        centerLabel.numberOfLines = 0
+        centerLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        centerLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(centerLabel)
     }
     
     private func setupCollectionView() {
@@ -177,6 +183,7 @@ class ViewController: UIViewController {
           
           collectionView.isHidden = isEmpty
           mainImage.isHidden = !isEmpty
+          centerLabel.isHidden = !isEmpty
           
           // Всегда обновляем коллекцию
           collectionView.reloadData()
