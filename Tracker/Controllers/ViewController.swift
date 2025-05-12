@@ -9,7 +9,24 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    private lazy var dateButton = UIButton(type: .system)
+    private lazy var datePicker: UIDatePicker = {
+        let picker = UIDatePicker()
+        picker.datePickerMode = .date
+        
+        // Создаем русскую локаль и календарь
+        let russianLocale = Locale(identifier: "ru_RU")
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = russianLocale
+        
+        // Применяем настройки
+        picker.locale = russianLocale
+        picker.calendar = calendar
+        picker.preferredDatePickerStyle = .compact
+        
+        picker.translatesAutoresizingMaskIntoConstraints = false
+        picker.addTarget(self, action: #selector(dateDidChange(_:)), for: .valueChanged)
+        return picker
+    }()
 
     private let buttonPlus      = UIButton(type: .system)
     private let titleLabel      = UILabel()
@@ -48,7 +65,8 @@ class ViewController: UIViewController {
         view.backgroundColor = .white
         
         setupButtonPlus()
-        setupDateButton()
+        setupDatePicker()
+        
         setupTitleLabel()
         setupSearchBar()
         setupMainImage()
@@ -63,14 +81,12 @@ class ViewController: UIViewController {
             buttonPlus.widthAnchor.constraint(equalToConstant: 42),
             buttonPlus.heightAnchor.constraint(equalToConstant: 42),
             
-            dateButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 49),
-            dateButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            dateButton.widthAnchor.constraint(equalToConstant: 77),
-            dateButton.heightAnchor.constraint(equalToConstant: 34),
-            
             titleLabel.topAnchor.constraint(equalTo: buttonPlus.bottomAnchor, constant: 1),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             titleLabel.widthAnchor.constraint(equalToConstant: 254),
+            
+            datePicker.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
             searchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 7),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
@@ -85,8 +101,7 @@ class ViewController: UIViewController {
             centerLabel.widthAnchor.constraint(equalToConstant: 343)
         
         ])
-        
-        updateDateButton(with: Date())
+
         updateUI()
         
         NotificationCenter.default.addObserver(
@@ -96,6 +111,16 @@ class ViewController: UIViewController {
              object: nil
          )
         
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
     
     private func setupButtonPlus() {
@@ -108,19 +133,8 @@ class ViewController: UIViewController {
         view.addSubview(buttonPlus)
     }
     
-    private func setupDateButton() {
-        dateButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(dateButton)
-    }
-    
-    private func updateDateButton(with date: Date) {
-        dateButton.setTitleColor(.black, for: .normal)
-        dateButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
-        dateButton.backgroundColor = .systemGray6
-        dateButton.layer.cornerRadius = 8
-        dateButton.addTarget(self, action: #selector(showDatePicker), for: .touchUpInside)
-        let formattedDate = dateFormatter.string(from: date)
-        dateButton.setTitle(formattedDate, for: .normal)
+    private func setupDatePicker() {
+        view.addSubview(datePicker)
     }
     
     private func setupTitleLabel() {
@@ -207,34 +221,10 @@ class ViewController: UIViewController {
         
     }
     
-    @objc private func showDatePicker() {
-        let datePicker = UIDatePicker()
-        datePicker.datePickerMode = .date
-        datePicker.preferredDatePickerStyle = .wheels
-        datePicker.locale = Locale(identifier: "ru_RU")
-        
-        let alert = UIAlertController(
-            title: "Выберите дату",
-            message: "\n\n\n\n\n\n\n\n\n\n",
-            preferredStyle: .actionSheet
-        )
-        alert.view.addSubview(datePicker)
-        datePicker.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            datePicker.centerXAnchor.constraint(equalTo: alert.view.centerXAnchor),
-            datePicker.topAnchor.constraint(equalTo: alert.view.topAnchor, constant: 45)
-        ])
-        
-        let okAction = UIAlertAction(title: "Готово", style: .default) { [weak self] _ in
-            let formattedDate = self?.dateFormatter.string(from: datePicker.date) ?? "Не выбрана дата"
-            self?.dateButton.setTitle(formattedDate, for: .normal)
-        }
-        
-        alert.addAction(okAction)
-        alert.addAction(UIAlertAction(title: "Отмена", style: .cancel))
-        
-        present(alert, animated: true)
-        
+    @objc private func dateDidChange(_ sender: UIDatePicker) {
+        let formattedDate = dateFormatter.string(from: sender.date)
+        // Если нужно где-то отображать выбранную дату
+        print("Выбрана дата:", formattedDate)
     }
     
     @objc private func handleTrackersUpdate() {
