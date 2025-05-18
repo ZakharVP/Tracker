@@ -13,6 +13,7 @@ struct Tracker {
     let color: UIColor
     let emoji: String
     let shedule: [WeekDay]?
+    let kind: TrackerKind
     
     var isRegular: Bool {
         shedule != nil

@@ -192,7 +192,13 @@ class ViewController: UIViewController {
     
     func updateUI() {
         // Всегда берем актуальные данные из хранилища
-          self.categories = TrackerDataStore.shared.getAllCategories()
+        let filteredCategories = TrackerDataStore.shared.getAllCategories().map { category in
+              let filteredTrackers = category.trackers.filter { $0.kind == .habit || $0.kind == .irregularEvent }
+              return TrackerCategory(title: category.title, trackers: filteredTrackers)
+          }.filter { !$0.trackers.isEmpty }
+          
+          self.categories = filteredCategories
+        
           let isEmpty = categories.isEmpty
           
           collectionView.isHidden = isEmpty

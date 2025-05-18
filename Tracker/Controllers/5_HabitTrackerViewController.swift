@@ -117,6 +117,7 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
         setupButtonCreate()
         
         setupConstraints()
+        setupHideKeyboardOnTap()
 
     }
     
@@ -394,7 +395,8 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
             title: trackerTitle,
             color: selectedColor ?? .systemBlue,
             emoji: selectedEmoji ?? "🙂",
-            shedule: selectedDays
+            shedule: selectedDays,
+            kind: .habit
         )
    
         // Сохраняем в хранилище

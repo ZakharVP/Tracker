@@ -76,7 +76,6 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
     let warningLabel = UILabel()
     
     var selectedCategory: String?
-    var selectedDays: [WeekDay] = []
     var trackerTitle: String = ""
     weak var delegate: TrackerCreationDelegate?
     let tableView        = UITableView()
@@ -117,6 +116,7 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
         setupButtonCreate()
         
         setupConstraints()
+        setupHideKeyboardOnTap()
 
     }
     
@@ -372,7 +372,6 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
         print("Попытка создания трекера:")
         print("Название: \(trackerTitle)")
         print("Категория: \(selectedCategory ?? "не выбрана")")
-        print("Дни: \(selectedDays.map { $0.shortName }.joined(separator: ", "))")
         
         guard !trackerTitle.isEmpty else {
             showAlert(title: "Ошибка", message: "Введите название привычки")
@@ -384,17 +383,13 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
             return
         }
         
-        guard !selectedDays.isEmpty else {
-            showAlert(title: "Ошибка", message: "Выберите расписание")
-            return
-        }
-        
         let newTracker = Tracker(
             id: UUID(),
             title: trackerTitle,
             color: selectedColor ?? .systemBlue,
             emoji: selectedEmoji ?? "🙂",
-            shedule: selectedDays
+            shedule: nil,
+            kind: .irregularEvent
         )
    
         // Сохраняем в хранилище
@@ -451,7 +446,7 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
     }
     
     func updateButtonCreateState() {
-        let isEnabled = !trackerTitle.isEmpty && selectedCategory != nil && !selectedDays.isEmpty
+        let isEnabled = !trackerTitle.isEmpty && selectedCategory != nil
         buttonCreate.backgroundColor = isEnabled ? .black : .gray
     }
 }

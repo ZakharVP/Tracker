@@ -24,6 +24,7 @@ class NewCategoryViewController: UIViewController, UITextFieldDelegate {
         setupDoneButton()
         
         setupConstraints()
+        setupHideKeyboardOnTap()
         
     }
     

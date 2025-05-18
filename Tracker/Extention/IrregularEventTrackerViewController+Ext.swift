@@ -24,8 +24,6 @@ extension IrregularEventTrackerViewController: UITableViewDataSource, UITableVie
             
             if indexPath.row == 0 {
                 content.secondaryText = selectedCategory ?? ""
-            } else {
-                content.secondaryText = selectedDays.isEmpty ? "" : selectedDays.map { $0.shortName }.joined(separator: ", ")
             }
             content.secondaryTextProperties.color = .gray
             cell.contentConfiguration = content
@@ -35,8 +33,6 @@ extension IrregularEventTrackerViewController: UITableViewDataSource, UITableVie
             
             if indexPath.row == 0 {
                 cell.detailTextLabel?.text = selectedCategory ?? ""
-            } else {
-                cell.detailTextLabel?.text = selectedDays.isEmpty ? "" : selectedDays.map { $0.shortName }.joined(separator: ", ")
             }
             
             cell.detailTextLabel?.textColor = .gray
@@ -79,7 +75,6 @@ extension IrregularEventTrackerViewController: UITableViewDataSource, UITableVie
     }
     
     func didSelectShedule(_ schedule: [WeekDay]) {
-        selectedDays = schedule
         tableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .automatic)
         updateButtonCreateState()
     }
