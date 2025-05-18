@@ -35,7 +35,12 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
             // Удаляем предыдущие subviews
             cell.contentView.subviews.forEach { $0.removeFromSuperview() }
                 
-            let colorView = UIView(frame: CGRect(x: 0, y: 0, width: cell.contentView.bounds.width, height: cell.contentView.bounds.height))
+            let colorViewSize: CGFloat = 40
+            let xOffset = (cell.contentView.bounds.width - colorViewSize) / 2
+            let yOffset = (cell.contentView.bounds.height - colorViewSize) / 2
+             
+            let colorView = UIView(frame: CGRect(x: xOffset, y: yOffset, width: colorViewSize, height: colorViewSize))
+         
             colorView.backgroundColor = colors[indexPath.row]
             colorView.layer.cornerRadius = 8
             cell.contentView.addSubview(colorView)
@@ -58,11 +63,11 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
     
-    
     private let nameTextFieldContainer   = UIView()
     private let nameTextField            = UITextField()
     private let nameCollectionEmojiView  = UILabel()
     private let nameCollectionColorsView = UILabel()
+    private let scrollView = UIScrollView()
     
     private let buttonFalse      = UIButton(type: .system)
     private let buttonCreate     = UIButton(type: .system)
@@ -103,8 +108,11 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
         setupCustomTextField()
         setupWarningLabel()
         setupTableView()
+        
         setupCollectionEmoji()
         setupCollectionColors()
+        setupCollections()
+        
         setupButtonFalse()
         setupButtonCreate()
         
@@ -140,14 +148,61 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
         nameCollectionEmojiView.font = UIFont.boldSystemFont(ofSize: 19)
         nameCollectionEmojiView.textColor = .black
         nameCollectionEmojiView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(nameCollectionEmojiView)
+        //view.addSubview(nameCollectionEmojiView)
         
         nameCollectionColorsView.text = "Цвет"
         nameCollectionColorsView.font = UIFont.boldSystemFont(ofSize: 19)
         nameCollectionColorsView.textColor = .black
         nameCollectionColorsView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(nameCollectionColorsView)
+        //view.addSubview(nameCollectionColorsView)
         
+    }
+    
+    private func setupCollections() {
+        
+        // Настройка ScrollView
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsVerticalScrollIndicator = true
+        view.addSubview(scrollView)
+        
+        // Контейнер для контента внутри ScrollView
+        let contentView = UIView()
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(contentView)
+        
+        // Добавляем контент в contentView
+        contentView.addSubview(nameCollectionEmojiView)
+        contentView.addSubview(collectionEmoji)
+        contentView.addSubview(nameCollectionColorsView)
+        contentView.addSubview(collectionColors)
+        
+        NSLayoutConstraint.activate([
+            
+            // Констрейнты для contentView
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            
+            // Контент внутри contentView
+            nameCollectionEmojiView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 0),
+            nameCollectionEmojiView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            
+            collectionEmoji.topAnchor.constraint(equalTo: nameCollectionEmojiView.bottomAnchor, constant: 24),
+            collectionEmoji.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            collectionEmoji.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            collectionEmoji.heightAnchor.constraint(equalToConstant: 156),
+            
+            nameCollectionColorsView.topAnchor.constraint(equalTo: collectionEmoji.bottomAnchor, constant: 24),
+            nameCollectionColorsView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            
+            collectionColors.topAnchor.constraint(equalTo: nameCollectionColorsView.bottomAnchor, constant: 0),
+            collectionColors.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            collectionColors.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            collectionColors.heightAnchor.constraint(equalToConstant: 180),
+            collectionColors.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0)
+        ])
     }
     
     private func setupCustomTextField() {
@@ -205,7 +260,6 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
         collectionEmoji.layer.cornerRadius = 16
         collectionEmoji.isScrollEnabled = false
         collectionEmoji.allowsMultipleSelection = false
-        view.addSubview(collectionEmoji)
     }
 
     private func setupCollectionColors() {
@@ -216,7 +270,6 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
         collectionColors.layer.cornerRadius = 16
         collectionColors.isScrollEnabled = false
         collectionColors.allowsMultipleSelection = false
-        view.addSubview(collectionColors)
     }
     
     private func setupButtonFalse() {
@@ -225,6 +278,7 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
         buttonFalse.setTitleColor(.red, for: .normal)
         buttonFalse.backgroundColor = .white
         buttonFalse.layer.cornerRadius = 16
+        buttonFalse.addTarget(self, action: #selector(falseButtonTapped), for: .touchUpInside)
         buttonFalse.layer.borderWidth = 1
         buttonFalse.layer.borderColor = UIColor.red.cgColor
         buttonFalse.translatesAutoresizingMaskIntoConstraints = false
@@ -235,7 +289,7 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
         buttonCreate.setTitle("Создать", for: .normal)
         buttonCreate.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         buttonCreate.setTitleColor(.white, for: .normal)
-        buttonCreate.backgroundColor = .gray 
+        buttonCreate.backgroundColor = UIColor(named: "grayMy")
         buttonCreate.layer.cornerRadius = 16
         buttonCreate.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
         buttonCreate.layer.shadowColor = UIColor.black.cgColor
@@ -249,10 +303,10 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
     private func setupConstraints() {
         
         NSLayoutConstraint.activate([
+            nameLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
             nameLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            nameLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 16),
             
-            nameTextFieldContainer.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 24),
+            nameTextFieldContainer.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 38),
             nameTextFieldContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             nameTextFieldContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             nameTextFieldContainer.heightAnchor.constraint(equalToConstant: 75),
@@ -267,27 +321,11 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
             warningLabel.leadingAnchor.constraint(equalTo: nameTextFieldContainer.leadingAnchor, constant: 16),
                   
             // Обновляем констрейнт таблицы, чтобы она была под warningLabel
-            tableView.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 24),
+            tableView.topAnchor.constraint(equalTo: nameTextFieldContainer.bottomAnchor, constant: 24),
             
             tableView.leadingAnchor.constraint(equalTo: nameTextFieldContainer.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: nameTextFieldContainer.trailingAnchor),
             tableView.heightAnchor.constraint(equalToConstant: 150),
-            
-            nameCollectionEmojiView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 16),
-            nameCollectionEmojiView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
-                        
-            collectionEmoji.topAnchor.constraint(equalTo: nameCollectionEmojiView.bottomAnchor, constant: 0),
-            collectionEmoji.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
-            collectionEmoji.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
-            collectionEmoji.heightAnchor.constraint(equalToConstant: 150),
-                        
-            nameCollectionColorsView.topAnchor.constraint(equalTo: collectionEmoji.bottomAnchor, constant: 16),
-            nameCollectionColorsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 28),
-                        
-            collectionColors.topAnchor.constraint(equalTo: nameCollectionColorsView.bottomAnchor, constant: 0),
-            collectionColors.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
-            collectionColors.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0),
-            collectionColors.heightAnchor.constraint(equalToConstant: 150),
             
             // Кнопки
             buttonFalse.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
@@ -298,7 +336,12 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
             buttonCreate.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             buttonCreate.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0),
             buttonCreate.widthAnchor.constraint(equalToConstant: 160),
-            buttonCreate.heightAnchor.constraint(equalToConstant: 60)
+            buttonCreate.heightAnchor.constraint(equalToConstant: 60),
+            
+            scrollView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 32),
+            scrollView.bottomAnchor.constraint(equalTo: buttonFalse.topAnchor, constant: -16),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
     }
     
@@ -319,6 +362,10 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
            }
         
         updateButtonCreateState()
+    }
+    
+    @objc private func falseButtonTapped() {
+        dismiss(animated: true)
     }
     
     @objc private func createButtonTapped() {
@@ -367,15 +414,40 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
         present(alert, animated: true)
     }
     
+    //выбор ячейки
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if collectionView == collectionEmoji {
             selectedEmoji = emojis[indexPath.row]
-            // Можно добавить визуальное выделение выбранной ячейки
+            // Подсвечиваем фон выбранной ячейки серым
+            if let cell = collectionView.cellForItem(at: indexPath) {
+                //cell.contentView.backgroundColor = .lightGray
+                cell.contentView.backgroundColor = UIColor(named: "grayLight")
+                cell.contentView.layer.cornerRadius = 16
+            }
         } else {
             selectedColor = colors[indexPath.row]
-            // Можно добавить визуальное выделение выбранной ячейки
+            if let cell = collectionView.cellForItem(at: indexPath) {
+                cell.contentView.layer.borderWidth = 3
+                cell.contentView.layer.borderColor = UIColor(named: "colorSelection")?.cgColor
+                cell.contentView.layer.cornerRadius = 8
+            }
         }
         updateButtonCreateState()
+    }
+    
+    //снятие выбора ячейки
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        if collectionView == collectionEmoji {
+            // Сбрасываем фон при отмене выбора
+            if let cell = collectionView.cellForItem(at: indexPath) {
+                cell.contentView.backgroundColor = .clear
+            }
+        } else {
+            // Убираем рамку при отмене выбора
+            if let cell = collectionView.cellForItem(at: indexPath) {
+                cell.contentView.layer.borderWidth = 0
+            }
+        }
     }
     
     func updateButtonCreateState() {
@@ -389,24 +461,35 @@ extension HabitTrackerViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                           layout collectionViewLayout: UICollectionViewLayout,
                           sizeForItemAt indexPath: IndexPath) -> CGSize {
-           return CGSize(width: 40, height: 40) // Фиксированный размер 52x52
+            return CGSize(width: 52, height: 52)
+
        }
        
        func collectionView(_ collectionView: UICollectionView,
                           layout collectionViewLayout: UICollectionViewLayout,
                           minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-           return 20 // Горизонтальный отступ между ячейками
+           //между ячейками
+           return 0
+  
        }
        
        func collectionView(_ collectionView: UICollectionView,
                           layout collectionViewLayout: UICollectionViewLayout,
                           minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-           return 12 // Вертикальный отступ между рядами
+           //между рядами
+           return 0
+      
        }
        
        func collectionView(_ collectionView: UICollectionView,
                           layout collectionViewLayout: UICollectionViewLayout,
                           insetForSectionAt section: Int) -> UIEdgeInsets {
-           return UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16) // Отступы секции
+          //секции
+           if collectionView == collectionEmoji {
+                    return UIEdgeInsets(top: 0, left: 9, bottom: 24, right: 9)
+               } else {
+                   return UIEdgeInsets(top: 24, left: 9, bottom: 24, right: 9)
+               }
        }
+    
 }

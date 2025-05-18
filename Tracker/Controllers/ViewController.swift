@@ -85,7 +85,7 @@ class ViewController: UIViewController {
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             titleLabel.widthAnchor.constraint(equalToConstant: 254),
             
-            datePicker.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            datePicker.topAnchor.constraint(equalTo: view.topAnchor, constant: 49),
             datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
             searchBar.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 7),

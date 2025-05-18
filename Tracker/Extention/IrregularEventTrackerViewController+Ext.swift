@@ -1,12 +1,13 @@
 //
-//  HabitTrackerController+Ext.swift
+//  IrregularEventTrackerViewController+Ext.swift
 //  Tracker
 //
-//  Created by Захар Панченко on 30.04.2025.
+//  Created by Захар Панченко on 15.05.2025.
 //
+
 import UIKit
 
-extension HabitTrackerViewController: UITableViewDataSource, UITableViewDelegate, CategorySelectionDelegate, SheduleSelectionDelegate {
+extension IrregularEventTrackerViewController: UITableViewDataSource, UITableViewDelegate, CategorySelectionDelegate, UITextFieldDelegate {
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return tableData.count
@@ -54,21 +55,10 @@ extension HabitTrackerViewController: UITableViewDataSource, UITableViewDelegate
     }
       
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // Обработка нажатия на ячейку
-        if tableData[indexPath.row] == "Категория" {
-            //Открыть страницу выбора Категории
-            let choiceCategoryVC = ChoiceCategoryViewController()
-            choiceCategoryVC.delegate = self
-            self.present(choiceCategoryVC, animated: true)
-            
-        } else {
-            let choiceSheduleVC = ChoiceSheduleViewController()
-            choiceSheduleVC.delegate = self
-            choiceSheduleVC.selectedDays = selectedDays
-            self.present(choiceSheduleVC, animated: true)
-        }
-        
-        print("Выбрано: \(tableData[indexPath.row])")
+        //Открыть страницу выбора Категории
+        let choiceCategoryVC = ChoiceCategoryViewController()
+        choiceCategoryVC.delegate = self
+        self.present(choiceCategoryVC, animated: true)
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -82,7 +72,7 @@ extension HabitTrackerViewController: UITableViewDataSource, UITableViewDelegate
     
     //Блок для делегата
     func didSelectCategory(_ category: String) {
-        print("Выбрана категория: \(category)") // Отладочная печать
+        print("Выбрана категория: \(category)")
         selectedCategory = category
         tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
         updateButtonCreateState()
@@ -92,6 +82,21 @@ extension HabitTrackerViewController: UITableViewDataSource, UITableViewDelegate
         selectedDays = schedule
         tableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .automatic)
         updateButtonCreateState()
+    }
+    
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        // Текущий текст + нововведённый символ
+        let currentText = textField.text ?? ""
+        let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
+            
+        if newText.count > 38 {
+            warningLabel.isHidden = false
+            return false
+        } else {
+            warningLabel.isHidden = true
+        }
+            
+        return true
     }
     
 }
