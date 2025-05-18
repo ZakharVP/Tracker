@@ -36,25 +36,36 @@ extension ViewController {
     }
     
     func compeleteTracker(withId id: UUID, date: Date) {
-        guard !isTrackerCompleted(id, on: date) else { return }
-        let record = TrackerRecord(trackerId: id, date: date)
+        let selectedDate = datePicker.date
+        guard !isTrackerCompleted(id, on: selectedDate) else { return }
+        let record = TrackerRecord(trackerId: id, date: selectedDate)
         completedTrackers.append(record)
+        print("Добавлена запись: \(record). Всего записей: \(completedTrackers.count)")
     }
     
     func uncompletedTrackers(witchId id: UUID, date: Date) {
+        let selectedDate = datePicker.date
+        let countBefore = completedTrackers.count
         completedTrackers.removeAll { record in
-            record.trackerId == id && Calendar.current.isDate(record.date, inSameDayAs: Date())
+            record.trackerId == id &&
+            Calendar.current.isDate(record.date, inSameDayAs: selectedDate)
         }
+        print("Удалены записи. Было: \(countBefore), стало: \(completedTrackers.count)")
     }
     
     func isTrackerCompleted(_ id: UUID, on date: Date) -> Bool {
         completedTrackers.contains{ record in
-            record.trackerId == id && Calendar.current.isDate(record.date, inSameDayAs: date)
+            record.trackerId == id &&
+            Calendar.current.isDate(record.date, inSameDayAs: date) &&
+            record.date <= date
         }
     }
     
     func completedDaysCount(for trackerId: UUID) -> Int {
-        completedTrackers.filter { $0.trackerId == trackerId }.count
+        return completedTrackers.filter {
+            $0.trackerId == trackerId &&
+            $0.date <= datePicker.date
+        }.count
     }
     
 }
@@ -75,24 +86,40 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegateFl
         ) as? TrackerCell else {
             return UICollectionViewCell()
         }
-        
+            
         let tracker = categories[indexPath.section].trackers[indexPath.item]
+        let selectedDate = datePicker.date
+        let isCompleted = isTrackerCompleted(tracker.id, on: selectedDate)
+        let canBeCompleted = selectedDate <= Date()
         let completedDays = completedDaysCount(for: tracker.id)
-        let isCompletedToday = isTrackerCompleted(tracker.id, on: Date())
-        
+            
         cell.configure(
             with: tracker,
             completedDays: completedDays,
-            isCompletedToday: isCompletedToday
+            isCompleted: isCompleted,
+            canBeCompleted: canBeCompleted
         ) { [weak self] trackerId, isCompleted in
+            guard let self = self else { return }
+                
             if isCompleted {
-                self?.compeleteTracker(withId: trackerId, date: Date())
+                self.compeleteTracker(withId: trackerId, date: selectedDate)
             } else {
-                self?.uncompletedTrackers(witchId: trackerId, date: Date())
+                self.uncompletedTrackers(witchId: trackerId, date: selectedDate)
             }
-            collectionView.reloadItems(at: [indexPath])
+
+
+            let updatedDays = self.completedDaysCount(for: trackerId)
+            let updatedIsCompleted = self.isTrackerCompleted(trackerId, on: selectedDate)
+            
+            if let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell {
+                cell.updateDaysCount(updatedDays)
+                cell.updateCompletionStatus(
+                        isCompleted: updatedIsCompleted,
+                        canBeCompleted: selectedDate <= Date()
+                    )
+            }
         }
-        
+            
         return cell
     }
     

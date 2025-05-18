@@ -18,6 +18,7 @@ class TrackerCell: UICollectionViewCell {
     
     private var trackerId: UUID?
     private var isCompleted = false
+    private var canBeCompleted = true
     private var completionHandler: ((UUID, Bool) -> Void)?
     
     override init(frame: CGRect) {
@@ -86,10 +87,16 @@ class TrackerCell: UICollectionViewCell {
         ])
     }
     
-    func configure(with tracker: Tracker, completedDays: Int, isCompletedToday: Bool, completion: @escaping (UUID, Bool) -> Void) {
+    func configure(
+        with tracker: Tracker,
+        completedDays: Int,
+        isCompleted: Bool,
+        canBeCompleted: Bool,
+        completion: @escaping (UUID, Bool) -> Void
+    ) {
         trackerId = tracker.id
         completionHandler = completion
-        self.isCompleted = isCompletedToday
+        self.isCompleted = isCompleted
         
         emojiLabel.text = tracker.emoji
         titleLabel.text = tracker.title
@@ -98,9 +105,9 @@ class TrackerCell: UICollectionViewCell {
         
         daysCountLabel.text = "\(completedDays) \(dayString(for: completedDays))"
         
-        let image = isCompletedToday ? UIImage(systemName: "checkmark") : UIImage(systemName: "plus")
+        let image = isCompleted ? UIImage(systemName: "checkmark") : UIImage(systemName: "plus")
         plusButton.setImage(image, for: .normal)
-        plusButton.alpha = isCompletedToday ? 0.5 : 1
+        plusButton.alpha = isCompleted ? 0.5 : 1
     }
     
     private func dayString(for count: Int) -> String {
@@ -115,14 +122,31 @@ class TrackerCell: UICollectionViewCell {
         }
     }
     
+    private func updateButtonAppearance() {
+        if isCompleted {
+             plusButton.setImage(UIImage(systemName: "checkmark"), for: .normal)
+             plusButton.alpha = 0.5
+         } else {
+             plusButton.setImage(UIImage(systemName: "plus"), for: .normal)
+             plusButton.alpha = canBeCompleted ? 1.0 : 0.3
+         }
+         plusButton.isEnabled = canBeCompleted
+     }
+    
+    func updateDaysCount(_ count: Int) {
+        daysCountLabel.text = "\(count) \(dayString(for: count))"
+    }
+    
+    func updateCompletionStatus(isCompleted: Bool, canBeCompleted: Bool) {
+        self.isCompleted = isCompleted
+        self.canBeCompleted = canBeCompleted
+        updateButtonAppearance()
+    }
+    
     @objc private func plusButtonTapped() {
         guard let trackerId = trackerId else { return }
         isCompleted.toggle()
-        
-        let image = isCompleted ? UIImage(systemName: "checkmark") : UIImage(systemName: "plus")
-        plusButton.setImage(image, for: .normal)
-        plusButton.alpha = isCompleted ? 0.5 : 1
-        
+        updateButtonAppearance()
         completionHandler?(trackerId, isCompleted)
     }
 }

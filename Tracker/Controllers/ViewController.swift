@@ -9,7 +9,7 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    private lazy var datePicker: UIDatePicker = {
+    lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
         picker.datePickerMode = .date
         
@@ -229,8 +229,11 @@ class ViewController: UIViewController {
     
     @objc private func dateDidChange(_ sender: UIDatePicker) {
         let formattedDate = dateFormatter.string(from: sender.date)
-        // Если нужно где-то отображать выбранную дату
         print("Выбрана дата:", formattedDate)
+        
+        UIView.performWithoutAnimation {
+            self.collectionView.reloadData()
+        }
     }
     
     @objc private func handleTrackersUpdate() {
