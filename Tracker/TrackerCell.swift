@@ -97,6 +97,7 @@ class TrackerCell: UICollectionViewCell {
         trackerId = tracker.id
         completionHandler = completion
         self.isCompleted = isCompleted
+        self.canBeCompleted = canBeCompleted
         
         emojiLabel.text = tracker.emoji
         titleLabel.text = tracker.title
@@ -104,10 +105,7 @@ class TrackerCell: UICollectionViewCell {
         plusButton.backgroundColor = tracker.color
         
         daysCountLabel.text = "\(completedDays) \(dayString(for: completedDays))"
-        
-        let image = isCompleted ? UIImage(systemName: "checkmark") : UIImage(systemName: "plus")
-        plusButton.setImage(image, for: .normal)
-        plusButton.alpha = isCompleted ? 0.5 : 1
+        updateButtonAppearance()
     }
     
     private func dayString(for count: Int) -> String {
@@ -144,9 +142,10 @@ class TrackerCell: UICollectionViewCell {
     }
     
     @objc private func plusButtonTapped() {
-        guard let trackerId = trackerId else { return }
-        isCompleted.toggle()
-        updateButtonAppearance()
-        completionHandler?(trackerId, isCompleted)
+        guard let trackerId = trackerId, canBeCompleted else { return }
+        
+        self.isCompleted.toggle()
+        self.updateButtonAppearance()
+        self.completionHandler?(trackerId, isCompleted)
     }
 }

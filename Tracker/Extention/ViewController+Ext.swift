@@ -38,6 +38,7 @@ extension ViewController {
     func compeleteTracker(withId id: UUID, date: Date) {
         let selectedDate = datePicker.date
         guard !isTrackerCompleted(id, on: selectedDate) else { return }
+        
         let record = TrackerRecord(trackerId: id, date: selectedDate)
         completedTrackers.append(record)
         print("Добавлена запись: \(record). Всего записей: \(completedTrackers.count)")
@@ -50,21 +51,20 @@ extension ViewController {
             record.trackerId == id &&
             Calendar.current.isDate(record.date, inSameDayAs: selectedDate)
         }
+        
         print("Удалены записи. Было: \(countBefore), стало: \(completedTrackers.count)")
     }
     
     func isTrackerCompleted(_ id: UUID, on date: Date) -> Bool {
         completedTrackers.contains{ record in
             record.trackerId == id &&
-            Calendar.current.isDate(record.date, inSameDayAs: date) &&
-            record.date <= date
+            Calendar.current.isDate(record.date, inSameDayAs: date)
         }
     }
     
     func completedDaysCount(for trackerId: UUID) -> Int {
         return completedTrackers.filter {
-            $0.trackerId == trackerId &&
-            $0.date <= datePicker.date
+            $0.trackerId == trackerId
         }.count
     }
     
@@ -100,6 +100,8 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegateFl
             canBeCompleted: canBeCompleted
         ) { [weak self] trackerId, isCompleted in
             guard let self = self else { return }
+            
+            let currentSelectedDate = self.datePicker.date
                 
             if isCompleted {
                 self.compeleteTracker(withId: trackerId, date: selectedDate)
@@ -108,15 +110,14 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegateFl
             }
 
 
-            let updatedDays = self.completedDaysCount(for: trackerId)
-            let updatedIsCompleted = self.isTrackerCompleted(trackerId, on: selectedDate)
-            
-            if let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell {
-                cell.updateDaysCount(updatedDays)
-                cell.updateCompletionStatus(
-                        isCompleted: updatedIsCompleted,
-                        canBeCompleted: selectedDate <= Date()
+            DispatchQueue.main.async {
+                if let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell {
+                    cell.updateDaysCount(self.completedDaysCount(for: trackerId))
+                    cell.updateCompletionStatus(
+                        isCompleted: self.isTrackerCompleted(trackerId, on: currentSelectedDate),
+                        canBeCompleted: currentSelectedDate <= Calendar.current.startOfDay(for: Date())
                     )
+                }
             }
         }
             
