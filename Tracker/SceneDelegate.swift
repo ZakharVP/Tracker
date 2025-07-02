@@ -17,8 +17,41 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let windowScene = (scene as? UIWindowScene) else { return }
+        
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = ViewController()
+        window?.overrideUserInterfaceStyle = .light
+        
+        let mainVC = ViewController()
+        //mainVC.title = "Tracker"
+        
+        let secondVC = SecondViewController()
+        //secondVC.title = "Settings"
+        
+        let firstNav = UINavigationController(rootViewController: mainVC)
+        let secondNav = UINavigationController(rootViewController: secondVC)
+        
+        firstNav.tabBarItem = UITabBarItem(
+            title: "Трекеры",
+            image: UIImage(named: "tab_bar_left"),
+            selectedImage: nil)
+        
+        secondNav.tabBarItem = UITabBarItem(
+            title: "Статистика",
+            image: UIImage(named: "tab_bar_right"),
+            selectedImage: nil)
+        
+        let tabBarController = UITabBarController()
+        tabBarController.viewControllers = [firstNav, secondNav]
+        
+        tabBarController.tabBar.tintColor = .systemBlue
+        tabBarController.tabBar.unselectedItemTintColor = .gray
+        tabBarController.tabBar.backgroundColor = .systemBackground
+        
+        let line = UIView(frame: CGRect(x: 0, y: 0, width: tabBarController.tabBar.frame.width, height: 0.5))
+        line.backgroundColor = .lightGray
+        tabBarController.tabBar.addSubview(line)
+        
+        window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
     }
 
