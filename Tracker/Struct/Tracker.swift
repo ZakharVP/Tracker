@@ -12,12 +12,12 @@ struct Tracker {
     let title: String
     let color: UIColor
     let emoji: String
-    let shedule: [WeekDay]?
+    let shedule: [WeekDay]
     let kind: TrackerKind
     
     var isRegular: Bool {
-        shedule != nil
-    }
+           return !shedule.isEmpty
+       }
 }
 
 enum WeekDay: Int, CaseIterable, Codable {

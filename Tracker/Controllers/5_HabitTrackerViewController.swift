@@ -72,6 +72,8 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
     private let buttonFalse      = UIButton(type: .system)
     private let buttonCreate     = UIButton(type: .system)
     
+    private let trackerStore: TrackerStoreProtocol = TrackerStore()
+    
     let nameLabel = UILabel()
     let warningLabel = UILabel()
     
@@ -400,10 +402,16 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
         )
    
         // Сохраняем в хранилище
-        TrackerDataStore.shared.addTracker(newTracker, to: category)
+        //TrackerDataStore.shared.addTracker(newTracker, to: category)
         
-        // Уведомляем делегата
-        delegate?.didCreateTracker(newTracker, category: category)
+        do {
+               try trackerStore.addTracker(newTracker, to: category)
+               delegate?.didCreateTracker(newTracker, category: category)
+               NotificationCenter.default.post(name: NSNotification.Name("TrackersDidUpdate"), object: nil)
+           } catch {
+               showAlert(title: "Ошибка", message: "Не удалось сохранить трекер")
+               print("Error saving tracker: \(error)")
+           }
         
         // Закрываем модальные окна
         self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
@@ -453,8 +461,15 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
     }
     
     func updateButtonCreateState() {
-        let isEnabled = !trackerTitle.isEmpty && selectedCategory != nil && !selectedDays.isEmpty
-        buttonCreate.backgroundColor = isEnabled ? .black : .gray
+        //let isEnabled = !trackerTitle.isEmpty && selectedCategory != nil && !selectedDays.isEmpty
+        //buttonCreate.backgroundColor = isEnabled ? .black : .gray
+        
+        let isEnabled = !trackerTitle.isEmpty &&
+                           selectedCategory != nil &&
+                           (selectedEmoji != nil) &&
+                           (selectedColor != nil)
+            buttonCreate.backgroundColor = isEnabled ? .black : .gray
+            buttonCreate.isEnabled = isEnabled
     }
 }
 

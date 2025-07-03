@@ -14,6 +14,8 @@ class ChoiceTypeTracker: UIViewController {
     private let irregularEventButton = UIButton()
     private let darkIndicatorView = UIView()
     
+    private let trackerStore: TrackerStoreProtocol = TrackerStore()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -92,9 +94,7 @@ class ChoiceTypeTracker: UIViewController {
     
     @objc func didTapHabitButton() {
         let habitTrackerVC = HabitTrackerViewController()
-        if let mainVC = presentingViewController as? ViewController {
-            habitTrackerVC.delegate = mainVC
-        }
+        //habitTrackerVC.delegate = self
         self.present(habitTrackerVC, animated: true)
     }
     
@@ -106,13 +106,30 @@ class ChoiceTypeTracker: UIViewController {
 }
 
 extension ChoiceTypeTracker: TrackerCreationDelegate {
+    
     func didCreateTracker(_ tracker: Tracker, category: String) {
-        // Добавляем трекер в хранилище
-        TrackerDataStore.shared.addTracker(tracker, to: category)
-        
-        // Закрываем все модальные окна до главного экрана
-        self.dismiss(animated: true) {
-            NotificationCenter.default.post(name: NSNotification.Name("TrackersDidUpdate"), object: nil)
+        do {
+            // Сохраняем трекер через CoreData
+            try trackerStore.addTracker(tracker, to: category)
+            
+            // Закрываем все модальные окна
+            self.dismiss(animated: true) {
+                // Уведомляем об обновлении трекеров
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("TrackersDidUpdate"),
+                    object: nil
+                )
+            }
+        } catch {
+            // Обработка ошибок сохранения
+            print("Ошибка при сохранении трекера: \(error)")
+            let alert = UIAlertController(
+                title: "Ошибка",
+                message: "Не удалось сохранить трекер",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(alert, animated: true)
         }
     }
 }

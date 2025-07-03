@@ -8,6 +8,11 @@
 import UIKit
 
 class ViewController: UIViewController {
+        
+    // Хранилища
+    let trackerStore: TrackerStoreProtocol = TrackerStore()
+    let recordStore: TrackerRecordStoreProtocol = TrackerRecordStore()
+    let categoryStore: TrackerCategoryStoreProtocol = TrackerCategoryStore()
     
     lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
@@ -54,9 +59,11 @@ class ViewController: UIViewController {
            return collectionView
        }()
     
-    var trackers:           [Tracker] = []
-    var categories:         [TrackerCategory] = []
-    var completedTrackers:  [TrackerRecord] = []
+    //var trackers:           [Tracker] = []
+    //var categories:         [TrackerCategory] = []
+    //var completedTrackers:  [TrackerRecord] = []
+    var categories: [TrackerCategory] = []
+    var completedTrackers: Set<UUID> = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -73,7 +80,8 @@ class ViewController: UIViewController {
         setupCenterLabel()
         setupCollectionView()
         
-        updateUI()
+        //updateUI()
+        loadData()
        
         NSLayoutConstraint.activate([
             buttonPlus.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
@@ -101,13 +109,11 @@ class ViewController: UIViewController {
             centerLabel.widthAnchor.constraint(equalToConstant: 343)
         
         ])
-
-        updateUI()
         
         NotificationCenter.default.addObserver(
              self,
              selector: #selector(handleTrackersUpdate),
-             name: TrackerDataStore.trackerDidChange,
+             name: NSNotification.Name("TrackersDidUpdate"),
              object: nil
          )
         
@@ -122,6 +128,16 @@ class ViewController: UIViewController {
         super.viewWillDisappear(animated)
         navigationController?.setNavigationBarHidden(false, animated: animated)
     }
+    
+    private func loadData() {
+            // Загружаем категории и трекеры
+            categories = categoryStore.fetchAllCategories()
+            
+            // Загружаем выполненные трекеры для выбранной даты
+            loadCompletedTrackers(for: datePicker.date)
+            
+            updateUI()
+        }
     
     private func setupButtonPlus() {
         if let image = UIImage(named: "plus") {
@@ -190,27 +206,24 @@ class ViewController: UIViewController {
          ])
      }
     
+    func loadCompletedTrackers(for date: Date) {
+            let records = recordStore.fetchRecords()
+            completedTrackers = Set(records
+                .filter { Calendar.current.isDate($0.date, inSameDayAs: date) }
+                .map { $0.trackerId })
+    }
+    
     func updateUI() {
-        // Всегда берем актуальные данные из хранилища
-        let filteredCategories = TrackerDataStore.shared.getAllCategories().map { category in
-              let filteredTrackers = category.trackers.filter { $0.kind == .habit || $0.kind == .irregularEvent }
-              return TrackerCategory(title: category.title, trackers: filteredTrackers)
-          }.filter { !$0.trackers.isEmpty }
-          
-          self.categories = filteredCategories
-        
-          let isEmpty = categories.isEmpty
-          
-          collectionView.isHidden = isEmpty
-          mainImage.isHidden = !isEmpty
-          centerLabel.isHidden = !isEmpty
-          
-          // Всегда обновляем коллекцию
-          collectionView.reloadData()
-          
-          print("Обновление UI. Количество категорий: \(categories.count)")
-          categories.forEach { print("Категория: \($0.title), трекеров: \($0.trackers.count)") }
-     }
+        let filteredCategories = categories.map { category in
+            let filteredTrackers = category.trackers.filter { tracker in
+                tracker.kind == .habit || tracker.kind == .irregularEvent
+            }
+            return TrackerCategory(title: category.title, trackers: filteredTrackers)
+        }.filter { !$0.trackers.isEmpty } // Убираем пустые категории
+
+        self.categories = filteredCategories
+        collectionView.reloadData()
+    }
     
     
     @objc func buttonPlusTapped() {
@@ -239,7 +252,7 @@ class ViewController: UIViewController {
     @objc private func handleTrackersUpdate() {
         print("Получено уведомление об изменении трекеров")
         DispatchQueue.main.async {
-            self.updateUI()
+            self.loadData()
         }
     }
 

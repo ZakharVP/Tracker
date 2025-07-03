@@ -10,11 +10,12 @@ import UIKit
 class ChoiceCategoryViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     weak var delegate: CategorySelectionDelegate?
+    let categoryStore: TrackerCategoryStoreProtocol = TrackerCategoryStore()
+    var categories: [TrackerCategory] = []
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cellCategory", for: indexPath)
         
-        let categories = TrackerDataStore.shared.getAllCategories()
         cell.textLabel?.text = categories[indexPath.row].title
         cell.backgroundColor = .clear
         cell.contentView.backgroundColor = .clear
@@ -38,11 +39,10 @@ class ChoiceCategoryViewController: UIViewController, UITableViewDelegate, UITab
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return TrackerDataStore.shared.getAllCategories().count
+        return categories.count
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let categories = TrackerDataStore.shared.getAllCategories()
         let selectedCategory = categories[indexPath.row].title
         delegate?.didSelectCategory(selectedCategory)
         dismiss(animated: true)
@@ -66,19 +66,19 @@ class ChoiceCategoryViewController: UIViewController, UITableViewDelegate, UITab
         setupDescriptionLabel()
         setupConstraints()
         
-        setupUpdateUI()
+        loadCategories()
         
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleCategoriesChange),
-            name: TrackerDataStore.categoriesDidChange,
+            name: NSNotification.Name("CategoriesDidUpdate"),
             object: nil
         )
     }
     
     override func viewWillAppear(_ animated: Bool) {
            super.viewWillAppear(animated)
-           setupUpdateUI()
+           loadCategories()
     }
     
     deinit {
@@ -133,7 +133,6 @@ class ChoiceCategoryViewController: UIViewController, UITableViewDelegate, UITab
     }
     
     private func calculateTableViewHeight() -> CGFloat {
-        let categories = TrackerDataStore.shared.getAllCategories()
         let rowHeight: CGFloat = 75
         let maxHeight: CGFloat = 525
         let calculatedHeight: CGFloat = CGFloat(categories.count) * rowHeight
@@ -142,8 +141,13 @@ class ChoiceCategoryViewController: UIViewController, UITableViewDelegate, UITab
         return min(calculatedHeight, maxHeight)
     }
     
+    private func loadCategories() {
+           categories = categoryStore.fetchAllCategories()
+           setupUpdateUI()
+       }
+    
     private func setupUpdateUI() {
-        let hasCategories = !TrackerDataStore.shared.getAllCategories().isEmpty
+        let hasCategories = !categories.isEmpty
         imageView.isHidden = hasCategories
         descriptionLabel.isHidden = hasCategories
         tableView.isHidden = !hasCategories
@@ -199,9 +203,7 @@ class ChoiceCategoryViewController: UIViewController, UITableViewDelegate, UITab
     }
     
     @objc private func handleCategoriesChange() {
-        DispatchQueue.main.async {
-            self.setupUpdateUI()
-        }
+        loadCategories()
     }
     
     @objc private func doneButtonTapped() {

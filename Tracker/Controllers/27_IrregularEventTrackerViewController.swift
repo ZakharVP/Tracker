@@ -72,6 +72,9 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
     private let buttonFalse      = UIButton(type: .system)
     private let buttonCreate     = UIButton(type: .system)
     
+    private let trackerStore: TrackerStoreProtocol = TrackerStore()
+    private let categoryStore: TrackerCategoryStoreProtocol = TrackerCategoryStore()
+    
     let nameLabel = UILabel()
     let warningLabel = UILabel()
     
@@ -369,38 +372,31 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
     }
     
     @objc private func createButtonTapped() {
-        print("Попытка создания трекера:")
-        print("Название: \(trackerTitle)")
-        print("Категория: \(selectedCategory ?? "не выбрана")")
-        
-        guard !trackerTitle.isEmpty else {
-            showAlert(title: "Ошибка", message: "Введите название привычки")
+        guard !trackerTitle.isEmpty,
+              let category = selectedCategory,
+              let color = selectedColor,
+              let emoji = selectedEmoji else {
+            showAlert(title: "Ошибка", message: "Заполните все поля")
             return
         }
-        
-        guard let category = selectedCategory else {
-            showAlert(title: "Ошибка", message: "Выберите категорию")
-            return
-        }
-        
+
         let newTracker = Tracker(
             id: UUID(),
             title: trackerTitle,
-            color: selectedColor ?? .systemBlue,
-            emoji: selectedEmoji ?? "🙂",
-            shedule: nil,
+            color: color,
+            emoji: emoji,
+            shedule: [], 
             kind: .irregularEvent
         )
-   
-        // Сохраняем в хранилище
-        TrackerDataStore.shared.addTracker(newTracker, to: category)
-        
-        // Уведомляем делегата
-        delegate?.didCreateTracker(newTracker, category: category)
-        
-        // Закрываем модальные окна
+
+        do {
+            try trackerStore.addTracker(newTracker, to: category)
+            delegate?.didCreateTracker(newTracker, category: category)
+            NotificationCenter.default.post(name: NSNotification.Name("TrackersDidUpdate"), object: nil)
+        } catch {
+            showAlert(title: "Ошибка", message: "Не удалось сохранить трекер")
+        }
         self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
-        
     }
     
     private func showAlert(title: String, message: String) {
@@ -446,8 +442,15 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
     }
     
     func updateButtonCreateState() {
-        let isEnabled = !trackerTitle.isEmpty && selectedCategory != nil
-        buttonCreate.backgroundColor = isEnabled ? .black : .gray
+        //let isEnabled = !trackerTitle.isEmpty && selectedCategory != nil
+        //buttonCreate.backgroundColor = isEnabled ? .black : .gray
+        
+        let isEnabled = !trackerTitle.isEmpty &&
+                           selectedCategory != nil &&
+                           (selectedEmoji != nil) &&
+                           (selectedColor != nil)
+            buttonCreate.backgroundColor = isEnabled ? .black : .gray
+            buttonCreate.isEnabled = isEnabled
     }
 }
 

@@ -14,6 +14,8 @@ class NewCategoryViewController: UIViewController, UITextFieldDelegate {
     private let nameTextField           = UITextField()
     private let doneButton              = UIButton()
     
+    private let categoryStore: TrackerCategoryStoreProtocol = TrackerCategoryStore()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -92,15 +94,28 @@ class NewCategoryViewController: UIViewController, UITextFieldDelegate {
             return
         }
         
-        if TrackerDataStore.shared.getAllCategories().contains(where: { $0.title.lowercased() == categoryName.lowercased()}) {
-            showAlert(title: "Ошибка", message: "Категория с таким именем уже существует")
-            return
+        do {
+            // Проверяем существование категории
+            let request = TrackerCategoryCoreData.fetchRequest()
+            request.predicate = NSPredicate(format: "nameCategoryTracker == %@", categoryName)
+            let count = try CoreDataManager.shared.context.count(for: request)
+                    
+            if count > 0 {
+                showAlert(title: "Ошибка", message: "Категория с таким именем уже существует")
+                return
+            }
+                    
+        // Создаем новую категорию
+            try categoryStore.fetchOrCreateCategory(with: categoryName)
+                    
+            // Отправляем уведомление об обновлении категорий
+            NotificationCenter.default.post(name: NSNotification.Name("CategoriesDidUpdate"), object: nil)
+                    
+            dismiss(animated: true)
+        } catch {
+            showAlert(title: "Ошибка", message: "Не удалось создать категорию")
+            print("Ошибка при создании категории: \(error)")
         }
-        
-        let newCategory = TrackerCategory(title: categoryName, trackers: [])
-        TrackerDataStore.shared.addCategory(newCategory)
-        
-        dismiss(animated: true)
         
     }
     
