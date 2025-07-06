@@ -55,29 +55,29 @@ final class TrackerStore: NSObject, TrackerStoreProtocol {
             print(" Ошибка при инициализации FetchedResultsController: \(error)")
         }
         
-        }
+    }
     
     func fetchAllCategories() -> [TrackerCategory] {
-            let request = TrackerCategoryCoreData.fetchRequest()
-            request.sortDescriptors = [NSSortDescriptor(key: "nameCategoryTracker", ascending: true)]
-            
-            do {
-                let categories = try context.fetch(request)
-                return categories.map { category in
-                    let trackers = fetchTrackers(for: category.nameCategoryTracker ?? "")
-                    return TrackerCategory(
-                        title: category.nameCategoryTracker ?? "",
-                        trackers: trackers
-                    )
-                }.filter { !$0.trackers.isEmpty }
-            } catch {
-                print("Ошибка при загрузке категорий: \(error)")
-                return []
-            }
+        let request = TrackerCategoryCoreData.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "nameCategoryTracker", ascending: true)]
+        
+        do {
+            let categories = try context.fetch(request)
+            return categories.map { category in
+                let trackers = fetchTrackers(for: category.nameCategoryTracker ?? "")
+                return TrackerCategory(
+                    title: category.nameCategoryTracker ?? "",
+                    trackers: trackers
+                )
+            }.filter { !$0.trackers.isEmpty }
+        } catch {
+            print("Ошибка при загрузке категорий: \(error)")
+            return []
         }
+    }
     
     
-func addTracker(_ tracker: Tracker, to categoryTitle: String) throws {
+    func addTracker(_ tracker: Tracker, to categoryTitle: String) throws {
         let category = try categoryStore.fetchOrCreateCategory(with: categoryTitle)
         
         context.perform { [weak self] in
@@ -125,22 +125,22 @@ func addTracker(_ tracker: Tracker, to categoryTitle: String) throws {
     
     
     func deleteTracker(with id: UUID) throws {
-    context.perform { [weak self] in
-        guard let self = self else { return }
-        
-        let request = TrackerCoreData.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-        
-        do {
-            if let tracker = try self.context.fetch(request).first {
-                self.context.delete(tracker)
-                try self.context.save()
+        context.perform { [weak self] in
+            guard let self = self else { return }
+            
+            let request = TrackerCoreData.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+            
+            do {
+                if let tracker = try self.context.fetch(request).first {
+                    self.context.delete(tracker)
+                    try self.context.save()
+                }
+            } catch {
+                print("Failed to delete tracker: \(error)")
             }
-        } catch {
-            print("Failed to delete tracker: \(error)")
         }
     }
-}
 }
 
 extension TrackerStore: NSFetchedResultsControllerDelegate {

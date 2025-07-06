@@ -122,14 +122,14 @@ class TrackerCell: UICollectionViewCell {
     
     private func updateButtonAppearance() {
         if isCompleted {
-             plusButton.setImage(UIImage(systemName: "checkmark"), for: .normal)
-             plusButton.alpha = 0.5
-         } else {
-             plusButton.setImage(UIImage(systemName: "plus"), for: .normal)
-             plusButton.alpha = canBeCompleted ? 1.0 : 0.3
-         }
-         plusButton.isEnabled = canBeCompleted
-     }
+            plusButton.setImage(UIImage(systemName: "checkmark"), for: .normal)
+            plusButton.alpha = 0.5
+        } else {
+            plusButton.setImage(UIImage(systemName: "plus"), for: .normal)
+            plusButton.alpha = canBeCompleted ? 1.0 : 0.3
+        }
+        plusButton.isEnabled = canBeCompleted
+    }
     
     func updateDaysCount(_ count: Int) {
         daysCountLabel.text = "\(count) \(dayString(for: count))"

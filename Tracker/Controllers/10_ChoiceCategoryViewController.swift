@@ -77,8 +77,8 @@ final class ChoiceCategoryViewController: UIViewController, UITableViewDelegate,
     }
     
     override func viewWillAppear(_ animated: Bool) {
-           super.viewWillAppear(animated)
-           loadCategories()
+        super.viewWillAppear(animated)
+        loadCategories()
     }
     
     deinit {
@@ -142,9 +142,9 @@ final class ChoiceCategoryViewController: UIViewController, UITableViewDelegate,
     }
     
     private func loadCategories() {
-           categories = categoryStore.fetchAllCategories()
-           setupUpdateUI()
-       }
+        categories = categoryStore.fetchAllCategories()
+        setupUpdateUI()
+    }
     
     private func setupUpdateUI() {
         let hasCategories = !categories.isEmpty
@@ -193,7 +193,7 @@ final class ChoiceCategoryViewController: UIViewController, UITableViewDelegate,
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.bottomAnchor.constraint(lessThanOrEqualTo: doneButton.topAnchor, constant: -16),
             tableView.heightAnchor.constraint(equalToConstant: calculateTableViewHeight()).priority(.defaultHigh),
-        
+            
             doneButton.heightAnchor.constraint(equalToConstant: 60),
             doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),

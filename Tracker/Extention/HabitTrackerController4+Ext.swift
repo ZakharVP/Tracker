@@ -12,14 +12,14 @@ extension HabitTrackerViewController: UITextFieldDelegate {
         // Текущий текст + нововведённый символ
         let currentText = textField.text ?? ""
         let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
-            
+        
         if newText.count > 38 {
             warningLabel.isHidden = false
             return false
         } else {
             warningLabel.isHidden = true
         }
-            
+        
         return true
     }
 }

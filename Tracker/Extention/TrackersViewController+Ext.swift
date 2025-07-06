@@ -104,13 +104,13 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         ) as? TrackerCell else {
             return UICollectionViewCell()
         }
-            
+        
         let tracker = categories[indexPath.section].trackers[indexPath.item]
         let selectedDate = datePicker.date
         let isCompleted = isTrackerCompleted(tracker.id, on: selectedDate)
         let canBeCompleted = selectedDate <= Date()
         let completedDays = completedDaysCount(for: tracker.id)
-            
+        
         cell.configure(
             with: tracker,
             completedDays: completedDaysCount(for: tracker.id),
@@ -119,22 +119,22 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         ) { [weak self] trackerId, isCompleted in
             self?.toggleTrackerCompletion(trackerId: trackerId, isCompleted: isCompleted)
         }
-            
+        
         return cell
     }
     
     func toggleTrackerCompletion(trackerId: UUID, isCompleted: Bool) {
         let selectedDate = datePicker.date // Используем дату из datePicker
-            
-            if completedTrackers.contains(trackerId) {
-                try? recordStore.deleteRecord(trackerId: trackerId, date: selectedDate)
-            } else {
-                try? recordStore.addRecord(trackerId: trackerId, date: selectedDate)
-            }
-            
-            // Обновляем UI
-            loadCompletedTrackers(for: selectedDate)
-            collectionView.reloadData()
+        
+        if completedTrackers.contains(trackerId) {
+            try? recordStore.deleteRecord(trackerId: trackerId, date: selectedDate)
+        } else {
+            try? recordStore.addRecord(trackerId: trackerId, date: selectedDate)
+        }
+        
+        // Обновляем UI
+        loadCompletedTrackers(for: selectedDate)
+        collectionView.reloadData()
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {

@@ -19,7 +19,7 @@ final class ChoiceTypeTracker: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-     
+        
         setupNameUI()
         setupHabitButton()
         setupIrregularEventButton()
@@ -33,11 +33,11 @@ final class ChoiceTypeTracker: UIViewController {
     }
     
     private func setupDarkIndicator() {
-         
-         darkIndicatorView.backgroundColor = .black
-         darkIndicatorView.translatesAutoresizingMaskIntoConstraints = false
-         view.addSubview(darkIndicatorView)
-     }
+        
+        darkIndicatorView.backgroundColor = .black
+        darkIndicatorView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(darkIndicatorView)
+    }
     
     private func setupConstraints() {
         
@@ -59,7 +59,7 @@ final class ChoiceTypeTracker: UIViewController {
             darkIndicatorView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             darkIndicatorView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             darkIndicatorView.heightAnchor.constraint(equalToConstant: 1)
-
+            
         ])
         
     }

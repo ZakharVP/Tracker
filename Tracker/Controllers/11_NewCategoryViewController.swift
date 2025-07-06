@@ -99,18 +99,18 @@ final class NewCategoryViewController: UIViewController, UITextFieldDelegate {
             let request = TrackerCategoryCoreData.fetchRequest()
             request.predicate = NSPredicate(format: "nameCategoryTracker == %@", categoryName)
             let count = try CoreDataManager.shared.context.count(for: request)
-                    
+            
             if count > 0 {
                 showAlert(title: "Ошибка", message: "Категория с таким именем уже существует")
                 return
             }
-                    
-        // Создаем новую категорию
+            
+            // Создаем новую категорию
             try categoryStore.fetchOrCreateCategory(with: categoryName)
-                    
+            
             // Отправляем уведомление об обновлении категорий
             NotificationCenter.default.post(name: NSNotification.Name("CategoriesDidUpdate"), object: nil)
-                    
+            
             dismiss(animated: true)
         } catch {
             showAlert(title: "Ошибка", message: "Не удалось создать категорию")

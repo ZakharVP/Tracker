@@ -8,14 +8,14 @@
 import UIKit
 
 extension IrregularEventTrackerViewController: UITableViewDataSource, UITableViewDelegate, CategorySelectionDelegate, UITextFieldDelegate {
-
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return tableData.count
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-
+        
         if #available(iOS 14.0, *) {
             var content = cell.defaultContentConfiguration()
             content.text = tableData[indexPath.row]
@@ -49,7 +49,7 @@ extension IrregularEventTrackerViewController: UITableViewDataSource, UITableVie
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 75 // Высота каждой ячейки
     }
-      
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         //Открыть страницу выбора Категории
         let choiceCategoryVC = ChoiceCategoryViewController()
@@ -58,7 +58,7 @@ extension IrregularEventTrackerViewController: UITableViewDataSource, UITableVie
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-       
+        
         if indexPath.row == tableData.count - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
         } else {
@@ -83,14 +83,14 @@ extension IrregularEventTrackerViewController: UITableViewDataSource, UITableVie
         // Текущий текст + нововведённый символ
         let currentText = textField.text ?? ""
         let newText = (currentText as NSString).replacingCharacters(in: range, with: string)
-            
+        
         if newText.count > 38 {
             warningLabel.isHidden = false
             return false
         } else {
             warningLabel.isHidden = true
         }
-            
+        
         return true
     }
     

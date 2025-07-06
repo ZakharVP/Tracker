@@ -8,7 +8,7 @@
 import UIKit
 
 final class TrackersViewController: UIViewController {
-        
+    
     // Хранилища
     let recordStore: TrackerRecordStoreProtocol = TrackerRecordStore()
     
@@ -36,7 +36,7 @@ final class TrackersViewController: UIViewController {
         store.delegate = self
         return store
     }()
-
+    
     private let buttonPlus      = UIButton(type: .system)
     private let titleLabel      = UILabel()
     private let searchBar       = UISearchBar()
@@ -50,18 +50,18 @@ final class TrackersViewController: UIViewController {
     }()
     
     lazy var collectionView: UICollectionView = {
-           let layout = UICollectionViewFlowLayout()
-           let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-           collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: "TrackerCell")
-           collectionView.register(
-               TrackerHeaderView.self,
-               forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-               withReuseIdentifier: "header"
-           )
-           collectionView.backgroundColor = .white
-           collectionView.translatesAutoresizingMaskIntoConstraints = false
-           return collectionView
-       }()
+        let layout = UICollectionViewFlowLayout()
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: "TrackerCell")
+        collectionView.register(
+            TrackerHeaderView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: "header"
+        )
+        collectionView.backgroundColor = .white
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
     
     var categories: [TrackerCategory] = []
     var completedTrackers: Set<UUID> = []
@@ -81,7 +81,7 @@ final class TrackersViewController: UIViewController {
         setupCollectionView()
         
         loadData()
-       
+        
         NSLayoutConstraint.activate([
             buttonPlus.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
             buttonPlus.topAnchor.constraint(equalTo: view.topAnchor, constant: 49),
@@ -106,7 +106,7 @@ final class TrackersViewController: UIViewController {
             centerLabel.topAnchor.constraint(equalTo: mainImage.bottomAnchor, constant: 8),
             centerLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             centerLabel.widthAnchor.constraint(equalToConstant: 343)
-        
+            
         ])
         
     }
@@ -115,7 +115,7 @@ final class TrackersViewController: UIViewController {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
-
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.setNavigationBarHidden(false, animated: animated)
@@ -176,23 +176,23 @@ final class TrackersViewController: UIViewController {
     }
     
     private func setupCollectionView() {
-         view.addSubview(collectionView)
-         collectionView.delegate = self
-         collectionView.dataSource = self
-         
-         NSLayoutConstraint.activate([
-             collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
-             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-         ])
-     }
+        view.addSubview(collectionView)
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+    }
     
     func loadCompletedTrackers(for date: Date) {
-            let records = recordStore.fetchRecords()
-            completedTrackers = Set(records
-                .filter { Calendar.current.isDate($0.date, inSameDayAs: date) }
-                .map { $0.trackerId })
+        let records = recordStore.fetchRecords()
+        completedTrackers = Set(records
+            .filter { Calendar.current.isDate($0.date, inSameDayAs: date) }
+            .map { $0.trackerId })
     }
     
     func loadData() {
@@ -207,7 +207,7 @@ final class TrackersViewController: UIViewController {
             }
             return TrackerCategory(title: category.title, trackers: filteredTrackers)
         }.filter { !$0.trackers.isEmpty }
-
+        
         self.categories = filteredCategories
         collectionView.reloadData()
         updatePlaceholderVisibility()
@@ -245,6 +245,6 @@ final class TrackersViewController: UIViewController {
             self.collectionView.reloadData()
         }
     }
-
+    
 }
 
