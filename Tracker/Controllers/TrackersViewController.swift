@@ -7,12 +7,10 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class TrackersViewController: UIViewController {
         
     // Хранилища
-    let trackerStore: TrackerStoreProtocol = TrackerStore()
     let recordStore: TrackerRecordStoreProtocol = TrackerRecordStore()
-    let categoryStore: TrackerCategoryStoreProtocol = TrackerCategoryStore()
     
     lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
@@ -31,6 +29,12 @@ class ViewController: UIViewController {
         picker.translatesAutoresizingMaskIntoConstraints = false
         picker.addTarget(self, action: #selector(dateDidChange(_:)), for: .valueChanged)
         return picker
+    }()
+    
+    private lazy var trackerStore: TrackerStoreProtocol = {
+        let store = TrackerStore()
+        store.delegate = self
+        return store
     }()
 
     private let buttonPlus      = UIButton(type: .system)
@@ -59,15 +63,11 @@ class ViewController: UIViewController {
            return collectionView
        }()
     
-    //var trackers:           [Tracker] = []
-    //var categories:         [TrackerCategory] = []
-    //var completedTrackers:  [TrackerRecord] = []
     var categories: [TrackerCategory] = []
     var completedTrackers: Set<UUID> = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
         
         view.backgroundColor = .white
         
@@ -80,7 +80,6 @@ class ViewController: UIViewController {
         setupCenterLabel()
         setupCollectionView()
         
-        //updateUI()
         loadData()
        
         NSLayoutConstraint.activate([
@@ -110,13 +109,6 @@ class ViewController: UIViewController {
         
         ])
         
-        NotificationCenter.default.addObserver(
-             self,
-             selector: #selector(handleTrackersUpdate),
-             name: NSNotification.Name("TrackersDidUpdate"),
-             object: nil
-         )
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -128,16 +120,6 @@ class ViewController: UIViewController {
         super.viewWillDisappear(animated)
         navigationController?.setNavigationBarHidden(false, animated: animated)
     }
-    
-    private func loadData() {
-            // Загружаем категории и трекеры
-            categories = categoryStore.fetchAllCategories()
-            
-            // Загружаем выполненные трекеры для выбранной даты
-            loadCompletedTrackers(for: datePicker.date)
-            
-            updateUI()
-        }
     
     private func setupButtonPlus() {
         if let image = UIImage(named: "plus") {
@@ -213,16 +195,31 @@ class ViewController: UIViewController {
                 .map { $0.trackerId })
     }
     
+    func loadData() {
+        categories = trackerStore.fetchAllCategories()
+        updateUI()
+    }
+    
     func updateUI() {
         let filteredCategories = categories.map { category in
             let filteredTrackers = category.trackers.filter { tracker in
                 tracker.kind == .habit || tracker.kind == .irregularEvent
             }
             return TrackerCategory(title: category.title, trackers: filteredTrackers)
-        }.filter { !$0.trackers.isEmpty } // Убираем пустые категории
+        }.filter { !$0.trackers.isEmpty }
 
         self.categories = filteredCategories
         collectionView.reloadData()
+        updatePlaceholderVisibility()
+    }
+    
+    func updatePlaceholderVisibility() {
+        let hasNoTrackers = categories.isEmpty
+        mainImage.isHidden = !hasNoTrackers
+        centerLabel.isHidden = !hasNoTrackers
+        
+        searchBar.isHidden = hasNoTrackers
+        collectionView.isHidden = hasNoTrackers
     }
     
     
@@ -246,13 +243,6 @@ class ViewController: UIViewController {
         
         UIView.performWithoutAnimation {
             self.collectionView.reloadData()
-        }
-    }
-    
-    @objc private func handleTrackersUpdate() {
-        print("Получено уведомление об изменении трекеров")
-        DispatchQueue.main.async {
-            self.loadData()
         }
     }
 

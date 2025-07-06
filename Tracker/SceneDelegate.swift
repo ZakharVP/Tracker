@@ -21,7 +21,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         window?.overrideUserInterfaceStyle = .light
         
-        let mainVC = ViewController()
+        let mainVC = TrackersViewController()
         //mainVC.title = "Tracker"
         
         let secondVC = SecondViewController()

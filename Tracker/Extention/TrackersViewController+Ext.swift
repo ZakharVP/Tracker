@@ -7,7 +7,7 @@
 
 import UIKit
 
-extension ViewController {
+extension TrackersViewController {
     
     func addTracker(_ tracker: Tracker, toCategoryTitle categoryTitle: String) {
         let newCategories: [TrackerCategory]
@@ -88,7 +88,7 @@ extension ViewController {
     
 }
 
-extension ViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return categories.count
     }
@@ -170,5 +170,14 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegateFl
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0)
+    }
+}
+
+extension TrackersViewController: TrackerStoreDelegate {
+    func trackersDidUpdate() {
+        print("Получено уведомление об обновлении трекеров")
+        DispatchQueue.main.async {
+            self.loadData()
+        }
     }
 }

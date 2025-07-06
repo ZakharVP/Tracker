@@ -400,14 +400,10 @@ class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UI
             shedule: selectedDays,
             kind: .habit
         )
-   
-        // Сохраняем в хранилище
-        //TrackerDataStore.shared.addTracker(newTracker, to: category)
         
         do {
                try trackerStore.addTracker(newTracker, to: category)
                delegate?.didCreateTracker(newTracker, category: category)
-               NotificationCenter.default.post(name: NSNotification.Name("TrackersDidUpdate"), object: nil)
            } catch {
                showAlert(title: "Ошибка", message: "Не удалось сохранить трекер")
                print("Error saving tracker: \(error)")
