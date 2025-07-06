@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ChoiceCategoryViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+final class ChoiceCategoryViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     weak var delegate: CategorySelectionDelegate?
     let categoryStore: TrackerCategoryStoreProtocol = TrackerCategoryStore()

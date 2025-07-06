@@ -7,7 +7,7 @@
 
 import UIKit
 
-class IrregularEventTrackerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+final class IrregularEventTrackerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return 18

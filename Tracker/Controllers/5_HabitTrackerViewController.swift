@@ -7,7 +7,7 @@
 
 import UIKit
 
-class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+final class HabitTrackerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return 18
     }

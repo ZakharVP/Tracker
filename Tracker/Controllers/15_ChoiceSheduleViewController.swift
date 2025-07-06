@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ChoiceSheduleViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+final class ChoiceSheduleViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return tableData.count

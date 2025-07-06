@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ChoiceTypeTracker: UIViewController {
+final class ChoiceTypeTracker: UIViewController {
     
     private let nameLabel = UILabel()
     private let habitButton = UIButton()

@@ -7,7 +7,7 @@
 
 import UIKit
 
-class TrackersViewController: UIViewController {
+final class TrackersViewController: UIViewController {
         
     // Хранилища
     let recordStore: TrackerRecordStoreProtocol = TrackerRecordStore()

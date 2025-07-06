@@ -7,7 +7,7 @@
 
 import UIKit
 
-class NewCategoryViewController: UIViewController, UITextFieldDelegate {
+final class NewCategoryViewController: UIViewController, UITextFieldDelegate {
     
     private let nameLabel               = UILabel()
     private let nameTextFieldContainer  = UIView()
