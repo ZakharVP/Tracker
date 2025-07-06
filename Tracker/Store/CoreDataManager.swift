@@ -14,7 +14,7 @@ final class CoreDataManager {
         let container = NSPersistentContainer(name: "Tracker")
         container.loadPersistentStores { _, error in
             if let error = error {
-                fatalError("Не могу загрузить persistent stores: \(error)")
+                print("Ошибка загрузки хранилища: \(error.localizedDescription)")
             }
         }
         return container
