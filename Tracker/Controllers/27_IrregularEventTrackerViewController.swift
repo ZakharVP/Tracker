@@ -7,8 +7,8 @@
 
 import UIKit
 
-class IrregularEventTrackerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
-
+final class IrregularEventTrackerViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return 18
     }
@@ -16,38 +16,38 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView == collectionEmoji {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cellEmoji", for: indexPath)
-                
+            
             // Удаляем предыдущие subviews чтобы избежать наложения
             cell.contentView.subviews.forEach { $0.removeFromSuperview() }
-                
+            
             let emojiLabel = UILabel(frame: CGRect(x: 0, y: 0, width: cell.contentView.bounds.width, height: cell.contentView.bounds.height))
             emojiLabel.text = emojis[indexPath.row]
             emojiLabel.textAlignment = .center
             emojiLabel.font = UIFont.systemFont(ofSize: 32)
             cell.contentView.addSubview(emojiLabel)
-                
+            
             cell.contentView.backgroundColor = .clear
             cell.contentView.layer.cornerRadius = 16
-                
+            
             return cell
         } else {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cellColors", for: indexPath)
-                
+            
             // Удаляем предыдущие subviews
             cell.contentView.subviews.forEach { $0.removeFromSuperview() }
-                
+            
             let colorViewSize: CGFloat = 40
             let xOffset = (cell.contentView.bounds.width - colorViewSize) / 2
             let yOffset = (cell.contentView.bounds.height - colorViewSize) / 2
-             
+            
             let colorView = UIView(frame: CGRect(x: xOffset, y: yOffset, width: colorViewSize, height: colorViewSize))
-         
+            
             colorView.backgroundColor = colors[indexPath.row]
             colorView.layer.cornerRadius = 8
             cell.contentView.addSubview(colorView)
-                
+            
             cell.contentView.backgroundColor = .clear
-                
+            
             return cell
         }
     }
@@ -55,9 +55,9 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
     private let emojis = ["🙂", "😻", "🌺", "🐶", "❤️", "😱", "😇", "😡", "🥶", "🤔", "🙌", "🍔", "🥦", "🏓", "🥇", "🎸", "🏝", "😪"]
     
     private let colors: [UIColor] = [
-            .colorSelection1, .colorSelection2, .colorSelection3, .colorSelection4, .colorSelection5, .colorSelection6,
-            .colorSelection7, .colorSelection8, .colorSelection9, .colorSelection10, .colorSelection11, .colorSelection12,
-            .colorSelection13, .colorSelection14, .colorSelection15, .colorSelection16, .colorSelection17, .colorSelection18
+        .colorSelection1, .colorSelection2, .colorSelection3, .colorSelection4, .colorSelection5, .colorSelection6,
+        .colorSelection7, .colorSelection8, .colorSelection9, .colorSelection10, .colorSelection11, .colorSelection12,
+        .colorSelection13, .colorSelection14, .colorSelection15, .colorSelection16, .colorSelection17, .colorSelection18
     ]
     
     private var selectedEmoji: String?
@@ -71,6 +71,9 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
     
     private let buttonFalse      = UIButton(type: .system)
     private let buttonCreate     = UIButton(type: .system)
+    
+    private let trackerStore: TrackerStoreProtocol = TrackerStore()
+    private let categoryStore: TrackerCategoryStoreProtocol = TrackerCategoryStore()
     
     let nameLabel = UILabel()
     let warningLabel = UILabel()
@@ -87,7 +90,7 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
     }()
-
+    
     let collectionColors: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -117,15 +120,15 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
         
         setupConstraints()
         setupHideKeyboardOnTap()
-
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-         
-         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-             self.nameTextField.becomeFirstResponder()
-         }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.nameTextField.becomeFirstResponder()
+        }
     }
     
     private func setupWarningLabel() {
@@ -261,7 +264,7 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
         collectionEmoji.isScrollEnabled = false
         collectionEmoji.allowsMultipleSelection = false
     }
-
+    
     private func setupCollectionColors() {
         collectionColors.delegate = self
         collectionColors.dataSource = self
@@ -319,7 +322,7 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
             // warningLabel
             warningLabel.topAnchor.constraint(equalTo: nameTextFieldContainer.bottomAnchor, constant: 4),
             warningLabel.leadingAnchor.constraint(equalTo: nameTextFieldContainer.leadingAnchor, constant: 16),
-                  
+            
             // Обновляем констрейнт таблицы, чтобы она была под warningLabel
             tableView.topAnchor.constraint(equalTo: nameTextFieldContainer.bottomAnchor, constant: 24),
             
@@ -349,17 +352,17 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
         NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(processEditingDidEnd), object: nil)
         self.perform(#selector(processEditingDidEnd), with: nil, afterDelay: 0.5)
     }
-
+    
     @objc func processEditingDidEnd() {
         guard let text = nameTextField.text else { return }
         trackerTitle = text
         print("Пользователь перестал вводить текст: \(nameTextField.text ?? "")")
         
         if text.count >= 2 {
-               nameLabel.text = "Создание привычки"
-           } else {
-               nameLabel.text = "Новая привычка"
-           }
+            nameLabel.text = "Создание привычки"
+        } else {
+            nameLabel.text = "Новая привычка"
+        }
         
         updateButtonCreateState()
     }
@@ -369,38 +372,31 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
     }
     
     @objc private func createButtonTapped() {
-        print("Попытка создания трекера:")
-        print("Название: \(trackerTitle)")
-        print("Категория: \(selectedCategory ?? "не выбрана")")
-        
-        guard !trackerTitle.isEmpty else {
-            showAlert(title: "Ошибка", message: "Введите название привычки")
-            return
-        }
-        
-        guard let category = selectedCategory else {
-            showAlert(title: "Ошибка", message: "Выберите категорию")
+        guard !trackerTitle.isEmpty,
+              let category = selectedCategory,
+              let color = selectedColor,
+              let emoji = selectedEmoji else {
+            showAlert(title: "Ошибка", message: "Заполните все поля")
             return
         }
         
         let newTracker = Tracker(
             id: UUID(),
             title: trackerTitle,
-            color: selectedColor ?? .systemBlue,
-            emoji: selectedEmoji ?? "🙂",
-            shedule: nil,
+            color: color,
+            emoji: emoji,
+            shedule: [], 
             kind: .irregularEvent
         )
-   
-        // Сохраняем в хранилище
-        TrackerDataStore.shared.addTracker(newTracker, to: category)
         
-        // Уведомляем делегата
-        delegate?.didCreateTracker(newTracker, category: category)
-        
-        // Закрываем модальные окна
+        do {
+            try trackerStore.addTracker(newTracker, to: category)
+            delegate?.didCreateTracker(newTracker, category: category)
+            NotificationCenter.default.post(name: NSNotification.Name("TrackersDidUpdate"), object: nil)
+        } catch {
+            showAlert(title: "Ошибка", message: "Не удалось сохранить трекер")
+        }
         self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
-        
     }
     
     private func showAlert(title: String, message: String) {
@@ -446,46 +442,53 @@ class IrregularEventTrackerViewController: UIViewController, UICollectionViewDel
     }
     
     func updateButtonCreateState() {
-        let isEnabled = !trackerTitle.isEmpty && selectedCategory != nil
+        //let isEnabled = !trackerTitle.isEmpty && selectedCategory != nil
+        //buttonCreate.backgroundColor = isEnabled ? .black : .gray
+        
+        let isEnabled = !trackerTitle.isEmpty &&
+        selectedCategory != nil &&
+        (selectedEmoji != nil) &&
+        (selectedColor != nil)
         buttonCreate.backgroundColor = isEnabled ? .black : .gray
+        buttonCreate.isEnabled = isEnabled
     }
 }
 
 extension IrregularEventTrackerViewController: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView,
-                          layout collectionViewLayout: UICollectionViewLayout,
-                          sizeForItemAt indexPath: IndexPath) -> CGSize {
-            return CGSize(width: 52, height: 52)
-
-       }
-       
-       func collectionView(_ collectionView: UICollectionView,
-                          layout collectionViewLayout: UICollectionViewLayout,
-                          minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-           //между ячейками
-           return 0
-  
-       }
-       
-       func collectionView(_ collectionView: UICollectionView,
-                          layout collectionViewLayout: UICollectionViewLayout,
-                          minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-           //между рядами
-           return 0
-      
-       }
-       
-       func collectionView(_ collectionView: UICollectionView,
-                          layout collectionViewLayout: UICollectionViewLayout,
-                          insetForSectionAt section: Int) -> UIEdgeInsets {
-          //секции
-           if collectionView == collectionEmoji {
-                    return UIEdgeInsets(top: 0, left: 9, bottom: 24, right: 9)
-               } else {
-                   return UIEdgeInsets(top: 24, left: 9, bottom: 24, right: 9)
-               }
-       }
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: 52, height: 52)
+        
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        //между ячейками
+        return 0
+        
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        //между рядами
+        return 0
+        
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        layout collectionViewLayout: UICollectionViewLayout,
+                        insetForSectionAt section: Int) -> UIEdgeInsets {
+        //секции
+        if collectionView == collectionEmoji {
+            return UIEdgeInsets(top: 0, left: 9, bottom: 24, right: 9)
+        } else {
+            return UIEdgeInsets(top: 24, left: 9, bottom: 24, right: 9)
+        }
+    }
     
 }
 

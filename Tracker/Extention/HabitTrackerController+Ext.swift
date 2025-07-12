@@ -7,14 +7,14 @@
 import UIKit
 
 extension HabitTrackerViewController: UITableViewDataSource, UITableViewDelegate, CategorySelectionDelegate, SheduleSelectionDelegate {
-
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return tableData.count
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-
+        
         if #available(iOS 14.0, *) {
             var content = cell.defaultContentConfiguration()
             content.text = tableData[indexPath.row]
@@ -52,7 +52,7 @@ extension HabitTrackerViewController: UITableViewDataSource, UITableViewDelegate
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 75 // Высота каждой ячейки
     }
-      
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // Обработка нажатия на ячейку
         if tableData[indexPath.row] == "Категория" {
@@ -72,7 +72,7 @@ extension HabitTrackerViewController: UITableViewDataSource, UITableViewDelegate
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-       
+        
         if indexPath.row == tableData.count - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
         } else {

@@ -7,7 +7,7 @@
 
 import UIKit
 
-extension ViewController {
+extension TrackersViewController {
     
     func addTracker(_ tracker: Tracker, toCategoryTitle categoryTitle: String) {
         let newCategories: [TrackerCategory]
@@ -39,38 +39,56 @@ extension ViewController {
         let selectedDate = datePicker.date
         guard !isTrackerCompleted(id, on: selectedDate) else { return }
         
-        let record = TrackerRecord(trackerId: id, date: selectedDate)
-        completedTrackers.append(record)
-        print("Добавлена запись: \(record). Всего записей: \(completedTrackers.count)")
+        completedTrackers.insert(id)  // Заменяем append на insert для Set
+        print("Добавлена запись: \(id). Всего записей: \(completedTrackers.count)")
     }
     
     func uncompletedTrackers(witchId id: UUID, date: Date) {
         let selectedDate = datePicker.date
         let countBefore = completedTrackers.count
-        completedTrackers.removeAll { record in
-            record.trackerId == id &&
-            Calendar.current.isDate(record.date, inSameDayAs: selectedDate)
-        }
+        completedTrackers.remove(id)  // Удаляем по UUID
         
         print("Удалены записи. Было: \(countBefore), стало: \(completedTrackers.count)")
     }
     
     func isTrackerCompleted(_ id: UUID, on date: Date) -> Bool {
-        completedTrackers.contains{ record in
-            record.trackerId == id &&
-            Calendar.current.isDate(record.date, inSameDayAs: date)
-        }
+        completedTrackers.contains(id)  // Проверяем только по UUID
     }
     
-    func completedDaysCount(for trackerId: UUID) -> Int {
-        return completedTrackers.filter {
-            $0.trackerId == trackerId
-        }.count
+    func completedDaysCount(for trackerId: UUID, on date: Date? = nil) -> Int {
+        let request = TrackerRecordCoreData.fetchRequest()
+        var predicates = [NSPredicate]()
+        
+        // Фильтр по ID трекера
+        predicates.append(NSPredicate(format: "tracker.id == %@", trackerId as CVarArg))
+        
+        // Фильтр по дате (если передана)
+        if let date = date {
+            let calendar = Calendar.current
+            let startOfDay = calendar.startOfDay(for: date)
+            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+            
+            predicates.append(NSPredicate(
+                format: "dateCompleted >= %@ AND dateCompleted < %@",
+                startOfDay as CVarArg,
+                endOfDay as CVarArg
+            ))
+        }
+        
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        
+        do {
+            let records = try CoreDataManager.shared.context.fetch(request)
+            return records.count
+        } catch {
+            print("Ошибка при получении записей: \(error)")
+            return 0
+        }
     }
     
 }
 
-extension ViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return categories.count
     }
@@ -86,42 +104,37 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegateFl
         ) as? TrackerCell else {
             return UICollectionViewCell()
         }
-            
+        
         let tracker = categories[indexPath.section].trackers[indexPath.item]
         let selectedDate = datePicker.date
         let isCompleted = isTrackerCompleted(tracker.id, on: selectedDate)
         let canBeCompleted = selectedDate <= Date()
         let completedDays = completedDaysCount(for: tracker.id)
-            
+        
         cell.configure(
             with: tracker,
-            completedDays: completedDays,
-            isCompleted: isCompleted,
+            completedDays: completedDaysCount(for: tracker.id),
+            isCompleted: completedTrackers.contains(tracker.id),
             canBeCompleted: canBeCompleted
         ) { [weak self] trackerId, isCompleted in
-            guard let self = self else { return }
-            
-            let currentSelectedDate = self.datePicker.date
-                
-            if isCompleted {
-                self.compeleteTracker(withId: trackerId, date: selectedDate)
-            } else {
-                self.uncompletedTrackers(witchId: trackerId, date: selectedDate)
-            }
-
-
-            DispatchQueue.main.async {
-                if let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell {
-                    cell.updateDaysCount(self.completedDaysCount(for: trackerId))
-                    cell.updateCompletionStatus(
-                        isCompleted: self.isTrackerCompleted(trackerId, on: currentSelectedDate),
-                        canBeCompleted: currentSelectedDate <= Calendar.current.startOfDay(for: Date())
-                    )
-                }
-            }
+            self?.toggleTrackerCompletion(trackerId: trackerId, isCompleted: isCompleted)
         }
-            
+        
         return cell
+    }
+    
+    func toggleTrackerCompletion(trackerId: UUID, isCompleted: Bool) {
+        let selectedDate = datePicker.date // Используем дату из datePicker
+        
+        if completedTrackers.contains(trackerId) {
+            try? recordStore.deleteRecord(trackerId: trackerId, date: selectedDate)
+        } else {
+            try? recordStore.addRecord(trackerId: trackerId, date: selectedDate)
+        }
+        
+        // Обновляем UI
+        loadCompletedTrackers(for: selectedDate)
+        collectionView.reloadData()
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -157,5 +170,14 @@ extension ViewController: UICollectionViewDataSource, UICollectionViewDelegateFl
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 0)
+    }
+}
+
+extension TrackersViewController: TrackerStoreDelegate {
+    func trackersDidUpdate() {
+        print("Получено уведомление об обновлении трекеров")
+        DispatchQueue.main.async {
+            self.loadData()
+        }
     }
 }

@@ -7,7 +7,10 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+final class TrackersViewController: UIViewController {
+    
+    // Хранилища
+    let recordStore: TrackerRecordStoreProtocol = TrackerRecordStore()
     
     lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
@@ -27,7 +30,13 @@ class ViewController: UIViewController {
         picker.addTarget(self, action: #selector(dateDidChange(_:)), for: .valueChanged)
         return picker
     }()
-
+    
+    private lazy var trackerStore: TrackerStoreProtocol = {
+        let store = TrackerStore()
+        store.delegate = self
+        return store
+    }()
+    
     private let buttonPlus      = UIButton(type: .system)
     private let titleLabel      = UILabel()
     private let searchBar       = UISearchBar()
@@ -41,26 +50,24 @@ class ViewController: UIViewController {
     }()
     
     lazy var collectionView: UICollectionView = {
-           let layout = UICollectionViewFlowLayout()
-           let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-           collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: "TrackerCell")
-           collectionView.register(
-               TrackerHeaderView.self,
-               forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
-               withReuseIdentifier: "header"
-           )
-           collectionView.backgroundColor = .white
-           collectionView.translatesAutoresizingMaskIntoConstraints = false
-           return collectionView
-       }()
+        let layout = UICollectionViewFlowLayout()
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: "TrackerCell")
+        collectionView.register(
+            TrackerHeaderView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
+            withReuseIdentifier: "header"
+        )
+        collectionView.backgroundColor = .white
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        return collectionView
+    }()
     
-    var trackers:           [Tracker] = []
-    var categories:         [TrackerCategory] = []
-    var completedTrackers:  [TrackerRecord] = []
+    var categories: [TrackerCategory] = []
+    var completedTrackers: Set<UUID> = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
         
         view.backgroundColor = .white
         
@@ -73,8 +80,8 @@ class ViewController: UIViewController {
         setupCenterLabel()
         setupCollectionView()
         
-        updateUI()
-       
+        loadData()
+        
         NSLayoutConstraint.activate([
             buttonPlus.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
             buttonPlus.topAnchor.constraint(equalTo: view.topAnchor, constant: 49),
@@ -99,17 +106,8 @@ class ViewController: UIViewController {
             centerLabel.topAnchor.constraint(equalTo: mainImage.bottomAnchor, constant: 8),
             centerLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             centerLabel.widthAnchor.constraint(equalToConstant: 343)
-        
+            
         ])
-
-        updateUI()
-        
-        NotificationCenter.default.addObserver(
-             self,
-             selector: #selector(handleTrackersUpdate),
-             name: TrackerDataStore.trackerDidChange,
-             object: nil
-         )
         
     }
     
@@ -117,7 +115,7 @@ class ViewController: UIViewController {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
-
+    
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.setNavigationBarHidden(false, animated: animated)
@@ -178,39 +176,51 @@ class ViewController: UIViewController {
     }
     
     private func setupCollectionView() {
-         view.addSubview(collectionView)
-         collectionView.delegate = self
-         collectionView.dataSource = self
-         
-         NSLayoutConstraint.activate([
-             collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
-             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
-         ])
-     }
+        view.addSubview(collectionView)
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 10),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+    }
+    
+    func loadCompletedTrackers(for date: Date) {
+        let records = recordStore.fetchRecords()
+        completedTrackers = Set(records
+            .filter { Calendar.current.isDate($0.date, inSameDayAs: date) }
+            .map { $0.trackerId })
+    }
+    
+    func loadData() {
+        categories = trackerStore.fetchAllCategories()
+        updateUI()
+    }
     
     func updateUI() {
-        // Всегда берем актуальные данные из хранилища
-        let filteredCategories = TrackerDataStore.shared.getAllCategories().map { category in
-              let filteredTrackers = category.trackers.filter { $0.kind == .habit || $0.kind == .irregularEvent }
-              return TrackerCategory(title: category.title, trackers: filteredTrackers)
-          }.filter { !$0.trackers.isEmpty }
-          
-          self.categories = filteredCategories
+        let filteredCategories = categories.map { category in
+            let filteredTrackers = category.trackers.filter { tracker in
+                tracker.kind == .habit || tracker.kind == .irregularEvent
+            }
+            return TrackerCategory(title: category.title, trackers: filteredTrackers)
+        }.filter { !$0.trackers.isEmpty }
         
-          let isEmpty = categories.isEmpty
-          
-          collectionView.isHidden = isEmpty
-          mainImage.isHidden = !isEmpty
-          centerLabel.isHidden = !isEmpty
-          
-          // Всегда обновляем коллекцию
-          collectionView.reloadData()
-          
-          print("Обновление UI. Количество категорий: \(categories.count)")
-          categories.forEach { print("Категория: \($0.title), трекеров: \($0.trackers.count)") }
-     }
+        self.categories = filteredCategories
+        collectionView.reloadData()
+        updatePlaceholderVisibility()
+    }
+    
+    func updatePlaceholderVisibility() {
+        let hasNoTrackers = categories.isEmpty
+        mainImage.isHidden = !hasNoTrackers
+        centerLabel.isHidden = !hasNoTrackers
+        
+        searchBar.isHidden = hasNoTrackers
+        collectionView.isHidden = hasNoTrackers
+    }
     
     
     @objc func buttonPlusTapped() {
@@ -236,12 +246,5 @@ class ViewController: UIViewController {
         }
     }
     
-    @objc private func handleTrackersUpdate() {
-        print("Получено уведомление об изменении трекеров")
-        DispatchQueue.main.async {
-            self.updateUI()
-        }
-    }
-
 }
 

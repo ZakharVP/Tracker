@@ -18,7 +18,8 @@ class TrackerHeaderView: UICollectionReusableView {
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        print("Ошибка: TrackerHeaderView не поддерживает загрузку из Storyboard")
+        return nil
     }
     
     private func setupViews() {

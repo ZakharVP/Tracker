@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ChoiceSheduleViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+final class ChoiceSheduleViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return tableData.count
@@ -33,7 +33,7 @@ class ChoiceSheduleViewController: UIViewController, UITableViewDelegate, UITabl
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-       
+        
         if indexPath.row == tableData.count - 1 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
         } else {
@@ -102,7 +102,7 @@ class ChoiceSheduleViewController: UIViewController, UITableViewDelegate, UITabl
             
             nameLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             nameLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
- 
+            
             tableView.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 30),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),

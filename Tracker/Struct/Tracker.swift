@@ -12,11 +12,11 @@ struct Tracker {
     let title: String
     let color: UIColor
     let emoji: String
-    let shedule: [WeekDay]?
+    let shedule: [WeekDay]
     let kind: TrackerKind
     
     var isRegular: Bool {
-        shedule != nil
+        return !shedule.isEmpty
     }
 }
 
@@ -31,13 +31,13 @@ enum WeekDay: Int, CaseIterable, Codable {
     
     var shortName: String {
         switch self {
-            case .monday:       return "Пн"
-            case .tuesday:      return "Вт"
-            case .wednesday:    return "Ср"
-            case .thursday:     return "Чт"
-            case .friday:       return "Пт"
-            case .saturday:     return "Сб"
-            case .sunday:       return "Вс"
+        case .monday:       return "Пн"
+        case .tuesday:      return "Вт"
+        case .wednesday:    return "Ср"
+        case .thursday:     return "Чт"
+        case .friday:       return "Пт"
+        case .saturday:     return "Сб"
+        case .sunday:       return "Вс"
         }
     }
 }
