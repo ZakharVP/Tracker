@@ -109,7 +109,7 @@ final class NewCategoryViewController: UIViewController, UITextFieldDelegate {
             try categoryStore.fetchOrCreateCategory(with: categoryName)
             
             // Отправляем уведомление об обновлении категорий
-            NotificationCenter.default.post(name: NSNotification.Name("CategoriesDidUpdate"), object: nil)
+            NotificationCenter.default.post(name: .categoriesDidUpdate, object: nil)
             
             dismiss(animated: true)
         } catch {
