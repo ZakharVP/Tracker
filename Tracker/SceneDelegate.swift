@@ -10,7 +10,7 @@ import UIKit
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     var window: UIWindow?
-    
+    var tabBarController: UITabBarController?
     
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -21,11 +21,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         window?.overrideUserInterfaceStyle = .light
         
-        let mainVC = TrackersViewController()
-        //mainVC.title = "Tracker"
+        setupMainInterface()
         
+        if UserDefaults.standard.bool(forKey: "onboardingShown") {
+            window?.rootViewController = tabBarController
+        } else {
+            showOnboarding()
+        }
+        
+        window?.makeKeyAndVisible()
+        
+    }
+    
+    func setupMainInterface() {
+        let tabBarController = UITabBarController()
+        self.tabBarController = tabBarController
+        
+        let mainVC = TrackersViewController()
         let secondVC = SecondViewController()
-        //secondVC.title = "Settings"
         
         let firstNav = UINavigationController(rootViewController: mainVC)
         let secondNav = UINavigationController(rootViewController: secondVC)
@@ -40,7 +53,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             image: UIImage(named: "tab_bar_right"),
             selectedImage: nil)
         
-        let tabBarController = UITabBarController()
         tabBarController.viewControllers = [firstNav, secondNav]
         
         tabBarController.tabBar.tintColor = .systemBlue
@@ -51,8 +63,30 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         line.backgroundColor = .lightGray
         tabBarController.tabBar.addSubview(line)
         
-        window?.rootViewController = tabBarController
-        window?.makeKeyAndVisible()
+    }
+    
+    func showOnboarding() {
+        let onboardingVC = OnboardingPageViewController(
+            transitionStyle: .scroll,
+            navigationOrientation: .horizontal
+        )
+        window?.rootViewController = onboardingVC
+    }
+    
+    func changeRootViewController(to viewController: UIViewController, animated: Bool = true) {
+        guard let window = self.window else { return }
+        
+        UserDefaults.standard.set(true, forKey: "onboardingShown")
+        
+        window.rootViewController = viewController
+        
+        if animated {
+            UIView.transition(with: window,
+                              duration: 0.3,
+                              options: .transitionCrossDissolve,
+                              animations: nil,
+                              completion: nil)
+        }
     }
     
     func sceneDidDisconnect(_ scene: UIScene) {

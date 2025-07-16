@@ -58,22 +58,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol {
     }
     
     func fetchAllCategories() -> [TrackerCategory] {
-        let request = TrackerCategoryCoreData.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "nameCategoryTracker", ascending: true)]
-        
-        do {
-            let categories = try context.fetch(request)
-            return categories.map { category in
-                let trackers = fetchTrackers(for: category.nameCategoryTracker ?? "")
-                return TrackerCategory(
-                    title: category.nameCategoryTracker ?? "",
-                    trackers: trackers
-                )
-            }.filter { !$0.trackers.isEmpty }
-        } catch {
-            print("Ошибка при загрузке категорий: \(error)")
-            return []
-        }
+        return categoryStore.fetchAllCategories()
     }
     
     

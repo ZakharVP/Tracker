@@ -16,6 +16,8 @@ final class TrackerCategoryStore: TrackerCategoryStoreProtocol {
     private let context: NSManagedObjectContext = CoreDataManager.shared.context
     
     func fetchOrCreateCategory(with title: String) throws -> TrackerCategoryCoreData {
+        print("Попытка создать категорию: \(title)")
+        
         let request = TrackerCategoryCoreData.fetchRequest()
         request.predicate = NSPredicate(format: "nameCategoryTracker == %@", title)
         
@@ -33,20 +35,28 @@ final class TrackerCategoryStore: TrackerCategoryStoreProtocol {
     
     func fetchAllCategories() -> [TrackerCategory] {
         let request = TrackerCategoryCoreData.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "nameCategoryTracker", ascending: true)]
         
         do {
             let categoriesCoreData = try context.fetch(request)
-            return categoriesCoreData.map { coreDataCategory in
+            print("Найдено категорий в Core Data: \(categoriesCoreData.count)")
+            
+            return categoriesCoreData.compactMap { coreDataCategory in
+                guard let title = coreDataCategory.nameCategoryTracker else { return nil }
+                
+                // Получаем трекеры для категории
                 let trackers = (coreDataCategory.tracker?.allObjects as? [TrackerCoreData])?
                     .compactMap { $0.toTracker() } ?? []
                 
+                print("Категория: \(title), трекеров: \(trackers.count)")
+                
                 return TrackerCategory(
-                    title: coreDataCategory.nameCategoryTracker ?? "",
+                    title: title,
                     trackers: trackers
                 )
             }
         } catch {
-            print("Не могу получить категории: \(error)")
+            print("Ошибка загрузки категорий: \(error)")
             return []
         }
     }
