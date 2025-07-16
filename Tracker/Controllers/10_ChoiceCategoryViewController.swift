@@ -24,7 +24,7 @@ final class ChoiceCategoryViewController: UIViewController, UITableViewDelegate,
     private lazy var imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
-        imageView.image = UIImage(named: "star_center")
+        imageView.image = UIImage(resource: .starCenter)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
