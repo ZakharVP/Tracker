@@ -196,23 +196,3 @@ extension ChoiceCategoryViewController {
         dismiss(animated: true)
     }
 }
-    
-    
-
-    
-
-
-    
-
-    
-
-    
- 
-
-    
-
-    
-
-
-
-
