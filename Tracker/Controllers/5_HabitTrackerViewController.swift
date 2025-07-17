@@ -77,10 +77,14 @@ final class HabitTrackerViewController: UIViewController, UICollectionViewDelega
     let nameLabel = UILabel()
     let warningLabel = UILabel()
     
+    var trackerToEdit: Tracker?
+    var daysCount: Int = 0
+    
     var selectedCategory: String?
     var selectedDays: [WeekDay] = []
     var trackerTitle: String = ""
     weak var delegate: TrackerCreationDelegate?
+    weak var delegateUpdate: TrackerUpdateDelegate?
     let tableView        = UITableView()
     
     let collectionEmoji: UICollectionView = {
@@ -107,6 +111,11 @@ final class HabitTrackerViewController: UIViewController, UICollectionViewDelega
         view.backgroundColor = .white
         
         setupNameUI()
+        
+        if trackerToEdit != nil {
+            nameLabel.text = "Редактирование привычки"
+        }
+        
         setupCustomTextField()
         setupWarningLabel()
         setupTableView()
@@ -121,6 +130,10 @@ final class HabitTrackerViewController: UIViewController, UICollectionViewDelega
         setupConstraints()
         setupHideKeyboardOnTap()
         
+        if let tracker = trackerToEdit {
+            setupEditingUI(with: tracker)
+        }
+        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -128,6 +141,37 @@ final class HabitTrackerViewController: UIViewController, UICollectionViewDelega
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             self.nameTextField.becomeFirstResponder()
+        }
+    }
+    
+    private func setupEditingUI(with tracker: Tracker) {
+        nameTextField.text = tracker.title
+        trackerTitle = tracker.title
+        selectedDays = tracker.shedule
+        selectedEmoji = tracker.emoji
+        selectedColor = tracker.color
+        
+        buttonCreate.setTitle("Сохранить", for: .normal)
+        updateButtonCreateState()
+        
+        tableView.reloadData()
+        
+        selectPredefinedEmojiAndColor(tracker: tracker)
+    }
+    
+    private func selectPredefinedEmojiAndColor(tracker: Tracker) {
+        let emojiIndex = emojis.firstIndex(of: tracker.emoji)
+        if emojiIndex != nil && emojiIndex! < collectionEmoji.numberOfItems(inSection: 0) {
+            let indexPath = IndexPath(item: emojiIndex!, section: 0)
+            collectionEmoji.selectItem(at: indexPath, animated: false, scrollPosition: [])
+            collectionView(collectionEmoji, didSelectItemAt: indexPath)
+        }
+        
+        let colorIndex = colors.firstIndex(where: { $0.isEqual(tracker.color) })
+        if colorIndex != nil && colorIndex! < collectionColors.numberOfItems(inSection: 0) {
+            let indexPath = IndexPath(item: colorIndex!, section: 0)
+            collectionColors.selectItem(at: indexPath, animated: false, scrollPosition: [])
+            collectionView(collectionColors, didSelectItemAt: indexPath)
         }
     }
     
@@ -372,46 +416,78 @@ final class HabitTrackerViewController: UIViewController, UICollectionViewDelega
     }
     
     @objc private func createButtonTapped() {
-        print("Попытка создания трекера:")
+        print("Попытка создания/обновления трекера:")
         print("Название: \(trackerTitle)")
         print("Категория: \(selectedCategory ?? "не выбрана")")
         print("Дни: \(selectedDays.map { $0.shortName }.joined(separator: ", "))")
         
+        guard validateInputs() else { return }
+        
+        let tracker = prepareTracker()
+        saveOrUpdateTracker(tracker)
+    }
+    
+    private func validateInputs() -> Bool {
         guard !trackerTitle.isEmpty else {
             showAlert(title: "Ошибка", message: "Введите название привычки")
-            return
+            return false
         }
         
         guard let category = selectedCategory else {
             showAlert(title: "Ошибка", message: "Выберите категорию")
-            return
+            return false
         }
         
         guard !selectedDays.isEmpty else {
             showAlert(title: "Ошибка", message: "Выберите расписание")
-            return
+            return false
         }
         
-        let newTracker = Tracker(
-            id: UUID(),
-            title: trackerTitle,
-            color: selectedColor ?? .systemBlue,
-            emoji: selectedEmoji ?? "🙂",
-            shedule: selectedDays,
-            kind: .habit
-        )
+        return true
+    }
+    
+    private func prepareTracker() -> Tracker {
+        if let trackerToEdit = trackerToEdit {
+            // Режим редактирования - сохраняем оригинальный ID
+            return Tracker(
+                id: trackerToEdit.id, // Важно сохранить тот же ID!
+                title: trackerTitle,
+                color: selectedColor ?? trackerToEdit.color,
+                emoji: selectedEmoji ?? trackerToEdit.emoji,
+                shedule: selectedDays,
+                kind: .habit
+            )
+        } else {
+            // Режим создания - генерируем новый ID
+            return Tracker(
+                id: UUID(),
+                title: trackerTitle,
+                color: selectedColor ?? .systemBlue,
+                emoji: selectedEmoji ?? "🙂",
+                shedule: selectedDays,
+                kind: .habit
+            )
+        }
+    }
+    
+    private func saveOrUpdateTracker(_ tracker: Tracker) {
+        guard let category = selectedCategory else { return }
         
         do {
-            try trackerStore.addTracker(newTracker, to: category)
-            delegate?.didCreateTracker(newTracker, category: category)
+            if trackerToEdit != nil {
+                try trackerStore.updateTracker(tracker, with: category)
+                delegateUpdate?.didUpdateTracker(tracker, category: category)
+            } else {
+                try trackerStore.addTracker(tracker, to: category)
+                delegate?.didCreateTracker(tracker, category: category)
+            }
+            
+            //dismiss(animated: true)
+            self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
         } catch {
             showAlert(title: "Ошибка", message: "Не удалось сохранить трекер")
             print("Error saving tracker: \(error)")
         }
-        
-        // Закрываем модальные окна
-        self.view.window?.rootViewController?.dismiss(animated: true, completion: nil)
-        
     }
     
     private func showAlert(title: String, message: String) {
@@ -457,9 +533,6 @@ final class HabitTrackerViewController: UIViewController, UICollectionViewDelega
     }
     
     func updateButtonCreateState() {
-        //let isEnabled = !trackerTitle.isEmpty && selectedCategory != nil && !selectedDays.isEmpty
-        //buttonCreate.backgroundColor = isEnabled ? .black : .gray
-        
         let isEnabled = !trackerTitle.isEmpty &&
         selectedCategory != nil &&
         (selectedEmoji != nil) &&
@@ -483,7 +556,6 @@ extension HabitTrackerViewController: UICollectionViewDelegateFlowLayout {
                         minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         //между ячейками
         return 0
-        
     }
     
     func collectionView(_ collectionView: UICollectionView,
@@ -491,7 +563,6 @@ extension HabitTrackerViewController: UICollectionViewDelegateFlowLayout {
                         minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         //между рядами
         return 0
-        
     }
     
     func collectionView(_ collectionView: UICollectionView,

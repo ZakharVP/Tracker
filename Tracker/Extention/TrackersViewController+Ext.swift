@@ -97,6 +97,13 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         return categories[section].trackers.count
     }
     
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        reportEvent(event: "click", item: "track")
+        
+        let tracker = categories[indexPath.section].trackers[indexPath.item]
+        print("Выбран трекер: \(tracker.title)")
+    }
+    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: "TrackerCell",
@@ -178,6 +185,37 @@ extension TrackersViewController: TrackerStoreDelegate {
         print("Получено уведомление об обновлении трекеров")
         DispatchQueue.main.async {
             self.loadData()
+        }
+    }
+}
+
+extension TrackersViewController: UICollectionViewDelegate {
+    func collectionView(
+        _ collectionView: UICollectionView,
+        contextMenuConfigurationForItemAt indexPath: IndexPath,
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
+        let identifier = "\(indexPath.section)-\(indexPath.row)" as NSString
+        return UIContextMenuConfiguration(
+            identifier: identifier,
+            previewProvider: nil
+        ) { _ in
+            let editAction = UIAction(
+                title: "Редактировать",
+                image: UIImage(systemName: "pencil")
+            ) { [weak self] _ in
+                self?.editTracker(at: indexPath)
+            }
+            
+            let deleteAction = UIAction(
+                title: "Удалить",
+                image: UIImage(systemName: "trash"),
+                attributes: .destructive
+            ) { [weak self] _ in
+                self?.confirmDeleteTracker(at: indexPath)
+            }
+            
+            return UIMenu(title: "", children: [editAction, deleteAction])
         }
     }
 }

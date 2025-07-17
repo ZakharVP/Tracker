@@ -51,12 +51,12 @@ class TrackerCell: UICollectionViewCell {
         colorView.addSubview(titleLabel)
         
         daysCountLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        daysCountLabel.textColor = .black
+        daysCountLabel.textColor = .label
         daysCountLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(daysCountLabel)
         
         plusButton.setImage(UIImage(systemName: "plus"), for: .normal)
-        plusButton.tintColor = .white
+        plusButton.tintColor = UIColor(resource: .whiteBack)
         plusButton.backgroundColor = colorView.backgroundColor
         plusButton.layer.cornerRadius = 17
         plusButton.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
@@ -105,7 +105,7 @@ class TrackerCell: UICollectionViewCell {
         colorView.backgroundColor = tracker.color
         plusButton.backgroundColor = tracker.color
         
-        daysCountLabel.text = "\(completedDays) \(dayString(for: completedDays))"
+        daysCountLabel.text = Localization.daysCount(completedDays)
         updateButtonAppearance()
     }
     

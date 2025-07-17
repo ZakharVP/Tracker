@@ -1,0 +1,24 @@
+/* 
+  Localizable.strings
+  Tracker
+
+  Created by Захар Панченко on 17.07.2025.
+  
+*/
+
+"trackers" = "Трекеры";
+"statistics" = "Статистика";
+"filters" = "Фильтры";
+"search" = "Поиск";
+"whatToTrack" = "Что будем отслеживать?";
+"nothingFound" = "Ничего не найдено";
+"day" = "день";
+"days" = "дня";
+"confirmDelete" = "Уверены что хотите удалить трекер?";
+"delete" = "Удалить";
+"cancel" = "Отменить";
+
+"%d day" = "%d день";
+"%d days2" = "%d дня";
+"%d days" = "%d дней";
+

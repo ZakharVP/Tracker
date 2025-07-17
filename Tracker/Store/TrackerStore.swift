@@ -16,7 +16,7 @@ protocol TrackerStoreProtocol {
     func fetchTrackers(for categoryTitle: String) -> [Tracker]
     func fetchAllCategories() -> [TrackerCategory]
     func deleteTracker(with id: UUID) throws
-    
+    func updateTracker(_ tracker: Tracker, with categoryTitle: String) throws    
     var delegate: TrackerStoreDelegate? { get set }
 }
 
@@ -123,6 +123,42 @@ final class TrackerStore: NSObject, TrackerStoreProtocol {
                 }
             } catch {
                 print("Failed to delete tracker: \(error)")
+            }
+        }
+    }
+    
+    func updateTracker(_ tracker: Tracker, with newCategoryTitle: String) throws {
+        try context.performAndWait {
+            // 1. Находим трекер для обновления
+            let request = TrackerCoreData.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+            
+            guard let trackerCoreData = try context.fetch(request).first else {
+                throw TrackerStoreError.trackerNotFound
+            }
+            
+            // 2. Находим или создаем новую категорию
+            let newCategory = try categoryStore.fetchOrCreateCategory(with: newCategoryTitle)
+            
+            // 3. Обновляем свойства трекера
+            trackerCoreData.nameTracker = tracker.title
+            trackerCoreData.emojiTracker = tracker.emoji
+            trackerCoreData.colorTracker = tracker.color
+            trackerCoreData.category = newCategory
+            
+            if !tracker.shedule.isEmpty {
+                trackerCoreData.weekDaysTracker = tracker.shedule.map { $0.rawValue } as NSObject
+            } else {
+                trackerCoreData.weekDaysTracker = nil
+            }
+            
+            // 4. Сохраняем изменения
+            do {
+                try context.save()
+                print("Трекер успешно обновлен")
+            } catch {
+                print("Ошибка при обновлении трекера: \(error)")
+                throw error
             }
         }
     }
