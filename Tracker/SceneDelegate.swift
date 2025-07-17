@@ -19,7 +19,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
         window = UIWindow(windowScene: windowScene)
-        window?.overrideUserInterfaceStyle = .light
         
         setupMainInterface()
         
@@ -44,12 +43,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let secondNav = UINavigationController(rootViewController: secondVC)
         
         firstNav.tabBarItem = UITabBarItem(
-            title: "Трекеры",
+            title: Localization.trackers,
             image: UIImage(named: "tab_bar_left"),
             selectedImage: nil)
         
         secondNav.tabBarItem = UITabBarItem(
-            title: "Статистика",
+            title: Localization.statistics,
             image: UIImage(named: "tab_bar_right"),
             selectedImage: nil)
         
@@ -57,10 +56,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         tabBarController.tabBar.tintColor = .systemBlue
         tabBarController.tabBar.unselectedItemTintColor = .gray
-        tabBarController.tabBar.backgroundColor = .systemBackground
+        tabBarController.tabBar.backgroundColor = UIColor(named: "main-background")
         
         let line = UIView(frame: CGRect(x: 0, y: 0, width: tabBarController.tabBar.frame.width, height: 0.5))
-        line.backgroundColor = .lightGray
+        line.backgroundColor = UIColor(resource: .grayBack)
         tabBarController.tabBar.addSubview(line)
         
     }

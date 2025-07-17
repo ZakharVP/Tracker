@@ -5,6 +5,8 @@
 //  Created by Захар Панченко on 04.05.2025.
 //
 
+// 85a0f939-5479-481a-adfa-9330c3571335 API key Yandex metrica
+
 import UIKit
 
 final class TrackerDataStore {
